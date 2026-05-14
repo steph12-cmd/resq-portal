@@ -1,292 +1,282 @@
-'use client';
-import { useState } from 'react';
 import Link from 'next/link';
 
-const STATS = [
-  { label: 'Total Personnel', value: '24', icon: '👥', change: '+3 this week' },
-  { label: 'Active Responders', value: '8', icon: '🦺', change: 'Online now' },
-  { label: 'Emergencies Today', value: '5', icon: '🚨', change: '2 resolved' },
-  { label: 'Avg Response Time', value: '4.2m', icon: '⏱️', change: '-0.8m vs last week' },
-];
-
-const RECENT_EMERGENCIES = [
-  { type: '🏥 Medical Emergency', location: 'Ikeja, Lagos', time: '10 mins ago', status: 'Active', responder: 'Dr. Amaka Obi' },
-  { type: '🔥 Fire', location: 'Surulere, Lagos', time: '1 hour ago', status: 'Resolved', responder: 'Emeka Tunde' },
-  { type: '🚗 Road Accident', location: 'Lekki, Lagos', time: '3 hours ago', status: 'Resolved', responder: 'Chidi Okonkwo' },
-  { type: '🔫 Armed Robbery', location: 'Oshodi, Lagos', time: 'Yesterday', status: 'Resolved', responder: 'Sgt. Bello' },
-];
-
-const PERSONNEL = [
-  { name: 'Dr. Amaka Obi', role: 'Medical', status: 'Active', responses: 24 },
-  { name: 'Emeka Tunde', role: 'Fire Service', status: 'Active', responses: 18 },
-  { name: 'Chidi Okonkwo', role: 'Medical', status: 'Offline', responses: 31 },
-  { name: 'Sgt. Ibrahim Bello', role: 'Police', status: 'Active', responses: 14 },
-  { name: 'Fatima Aliyu', role: 'Volunteer', status: 'Offline', responses: 9 },
-];
-
-export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState('overview');
-
+export default function Home() {
   return (
-    <div className="min-h-screen bg-[#111111] flex">
+    <main className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">
 
-      {/* Sidebar */}
-      <div className="w-64 bg-[#0a0a0a] border-r border-[#1a1a1a] flex flex-col p-6 fixed h-full">
-        <div className="flex items-center gap-3 mb-10">
-          <div className="w-10 h-10 bg-[#cc0000] rounded-lg flex items-center justify-center">
-            <div className="w-3 h-3 bg-white rounded-full" />
+      {/* Navbar */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-sm border-b border-[#1a1a1a] px-6 py-4 flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-[#cc0000] rounded-lg flex items-center justify-center">
+            <div className="w-2 h-2 bg-white rounded-full" />
           </div>
-          <div>
-            <p className="text-white font-bold text-sm">ResQ Portal</p>
-            <p className="text-[#888] text-xs">Lagos Fire Service</p>
-          </div>
+          <span className="font-bold text-lg tracking-wider">ResQ</span>
         </div>
-
-        <nav className="flex flex-col gap-2 flex-1">
-          {[
-            { id: 'overview', icon: '📊', label: 'Overview' },
-            { id: 'emergencies', icon: '🚨', label: 'Emergencies' },
-            { id: 'personnel', icon: '👥', label: 'Personnel' },
-            { id: 'analytics', icon: '📈', label: 'Analytics' },
-            { id: 'settings', icon: '⚙️', label: 'Settings' },
-          ].map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition text-left ${
-                activeTab === item.id
-                  ? 'bg-[#cc0000] text-white'
-                  : 'text-[#888] hover:bg-[#1a1a1a] hover:text-white'
-              }`}
-            >
-              <span>{item.icon}</span>
-              {item.label}
-            </button>
-          ))}
-        </nav>
-
-        <div className="border-t border-[#1a1a1a] pt-4">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 bg-[#cc0000] rounded-full flex items-center justify-center">
-              <span className="text-white text-xs font-bold">A</span>
-            </div>
-            <div>
-              <p className="text-white text-xs font-semibold">Admin</p>
-              <p className="text-[#888] text-xs">Lagos Fire Service</p>
-            </div>
-          </div>
-          <Link href="/login" className="text-[#555] text-xs hover:text-[#888]">
-            Logout
+        <div className="hidden md:flex items-center gap-8 text-sm text-[#888]">
+          <a href="#how" className="hover:text-white transition">How it works</a>
+          <a href="#features" className="hover:text-white transition">Features</a>
+          <a href="#organisations" className="hover:text-white transition">Organisations</a>
+        </div>
+        <div className="flex items-center gap-3">
+          <Link href="/login" className="text-sm text-[#888] hover:text-white transition">
+            Login
+          </Link>
+          <Link href="/register" className="bg-[#cc0000] text-white text-sm px-4 py-2 rounded-full hover:bg-[#aa0000] transition">
+            Register Org
           </Link>
         </div>
-      </div>
+      </nav>
 
-      {/* Main Content */}
-      <div className="ml-64 flex-1 p-8">
+      {/* Hero */}
+      <section className="min-h-screen flex flex-col items-center justify-center text-center px-6 pt-20">
+        <div className="inline-flex items-center gap-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded-full px-4 py-2 mb-8">
+          <div className="w-2 h-2 bg-[#cc0000] rounded-full" />
+          <span className="text-sm text-[#888]">Nigeria&apos;s Emergency Response Network</span>
+        </div>
+        <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+          Help is always <br />
+          <span className="text-[#cc0000]">near you</span>
+        </h1>
+        <p className="text-[#888] text-lg md:text-xl max-w-2xl mb-10 leading-relaxed">
+          ResQ connects Nigerians in emergency situations to verified responders in seconds.
+          No more helpless moments. Help is one tap away.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 mb-16">
+          <a href="#download" className="bg-[#cc0000] text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-[#aa0000] transition">
+            Download the App
+          </a>
+          <Link href="/register" className="border border-[#cc0000] text-[#cc0000] px-8 py-4 rounded-full font-semibold text-lg hover:bg-[#cc0000] hover:text-white transition">
+            Register Organisation
+          </Link>
+        </div>
+        <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-[#555]">
+          <div className="flex items-center gap-2">
+            <span className="text-[#cc0000] font-bold">🚨</span>
+            <span>One tap SOS</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[#cc0000] font-bold">✅</span>
+            <span>Verified responders</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[#cc0000] font-bold">📍</span>
+            <span>Live GPS tracking</span>
+          </div>
+        </div>
+      </section>
 
-        {activeTab === 'overview' && (
-          <div>
-            <div className="mb-8">
-              <h1 className="text-2xl font-bold text-white mb-1">Good morning 👋</h1>
-              <p className="text-[#888] text-sm">Here's what's happening with Lagos Fire Service today</p>
+      {/* Stats */}
+      <section className="py-20 px-6 border-y border-[#1a1a1a]">
+        <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          {[
+            { number: '24', label: 'Emergency Types' },
+            { number: '3', label: 'User Roles' },
+            { number: '1', label: 'Tap to Safety' },
+            { number: '₦0', label: 'Cost to Citizens' },
+          ].map((stat) => (
+            <div key={stat.label}>
+              <p className="text-4xl font-bold text-[#cc0000] mb-2">{stat.number}</p>
+              <p className="text-[#888] text-sm">{stat.label}</p>
             </div>
+          ))}
+        </div>
+      </section>
 
-            <div className="grid grid-cols-4 gap-4 mb-8">
-              {STATS.map((stat) => (
-                <div key={stat.label} className="bg-[#1a1a1a] rounded-2xl p-5 border border-[#2a2a2a]">
-                  <div className="flex justify-between items-start mb-3">
-                    <span className="text-2xl">{stat.icon}</span>
-                    <span className="text-[#888] text-xs">{stat.change}</span>
+      {/* How it works */}
+      <section id="how" className="py-24 px-6">
+        <div className="max-w-5xl mx-auto">
+          <p className="text-[#cc0000] text-sm font-semibold text-center mb-4 uppercase tracking-widest">
+            How it works
+          </p>
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
+            Emergency response in 3 steps
+          </h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                step: '01',
+                title: 'Press SOS',
+                desc: 'Open ResQ and press the big red SOS button. Your GPS location is captured instantly.',
+                icon: '🚨',
+              },
+              {
+                step: '02',
+                title: 'Select Emergency',
+                desc: 'Choose from 24 emergency types. Add details to help responders prepare before arriving.',
+                icon: '📋',
+              },
+              {
+                step: '03',
+                title: 'Help Arrives',
+                desc: 'Verified responders near you are alerted instantly. Track them coming to you in real time.',
+                icon: '🦺',
+              },
+            ].map((item) => (
+              <div key={item.step} className="bg-[#111] border border-[#1a1a1a] rounded-2xl p-8">
+                <div className="w-12 h-12 bg-[#cc0000] rounded-xl flex items-center justify-center mb-6">
+                  <span className="text-xl">{item.icon}</span>
+                </div>
+                <p className="text-[#cc0000] text-sm font-semibold mb-2">{item.step}</p>
+                <h3 className="text-xl font-bold mb-3">{item.title}</h3>
+                <p className="text-[#888] leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section id="features" className="py-24 px-6 bg-[#0d0d0d]">
+        <div className="max-w-5xl mx-auto">
+          <p className="text-[#cc0000] text-sm font-semibold text-center mb-4 uppercase tracking-widest">
+            Features
+          </p>
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
+            Built for Nigerian realities
+          </h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            {[
+              {
+                icon: '📍',
+                title: 'Automatic GPS Location',
+                desc: 'Your exact location is captured the moment you press SOS — even if you cannot speak.',
+              },
+              {
+                icon: '🔔',
+                title: 'Instant Push Notifications',
+                desc: 'Available responders near you are notified immediately with full emergency details.',
+              },
+              {
+                icon: '✅',
+                title: 'Verified Responders Only',
+                desc: 'Every responder is verified through their organisation before they can respond to any alert.',
+              },
+              {
+                icon: '📞',
+                title: 'Emergency Hotline Access',
+                desc: 'One tap access to Nigeria emergency hotline (112) directly from the alert screen.',
+              },
+              {
+                icon: '🗺️',
+                title: 'Live Navigation',
+                desc: 'Responders navigate to victims via Google Maps with real-time directions.',
+              },
+              {
+                icon: '🏢',
+                title: 'Organisation Dashboard',
+                desc: 'Organisations manage their responders, track responses, and view analytics from a web portal.',
+              },
+            ].map((feature) => (
+              <div key={feature.title} className="flex gap-4 bg-[#111] border border-[#1a1a1a] rounded-2xl p-6">
+                <div className="w-12 h-12 bg-[#1a1a1a] rounded-xl flex items-center justify-center shrink-0">
+                  <span className="text-2xl">{feature.icon}</span>
+                </div>
+                <div>
+                  <h3 className="font-bold mb-2">{feature.title}</h3>
+                  <p className="text-[#888] text-sm leading-relaxed">{feature.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* For Organisations */}
+      <section id="organisations" className="py-24 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <p className="text-[#cc0000] text-sm font-semibold mb-4 uppercase tracking-widest">
+                For Organisations
+              </p>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">
+                Power your emergency response with ResQ
+              </h2>
+              <p className="text-[#888] leading-relaxed mb-8">
+                Whether you are a hospital, private security firm, fire service or NGO —
+                ResQ gives you the digital infrastructure to respond faster, track better, and save more lives.
+              </p>
+              <div className="flex flex-col gap-4 mb-8">
+                {[
+                  'Real-time emergency alerts for your team',
+                  'Web dashboard to manage all personnel',
+                  'Analytics and response time tracking',
+                  'Automatic dispatch to nearest responder',
+                ].map((item) => (
+                  <div key={item} className="flex items-center gap-3">
+                    <div className="w-5 h-5 bg-[#cc0000] rounded-full flex items-center justify-center shrink-0">
+                      <span className="text-white text-xs">✓</span>
+                    </div>
+                    <span className="text-[#888] text-sm">{item}</span>
                   </div>
-                  <p className="text-3xl font-bold text-white mb-1">{stat.value}</p>
-                  <p className="text-[#888] text-sm">{stat.label}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-3 gap-6">
-              <div className="col-span-2 bg-[#1a1a1a] rounded-2xl p-6 border border-[#2a2a2a]">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-white font-bold">Recent Emergencies</h2>
-                  <button
-                    onClick={() => setActiveTab('emergencies')}
-                    className="text-[#cc0000] text-sm hover:underline"
-                  >
-                    View all
-                  </button>
-                </div>
-                <div className="flex flex-col gap-3">
-                  {RECENT_EMERGENCIES.map((em, i) => (
-                    <div key={i} className="flex items-center justify-between py-3 border-b border-[#222] last:border-0">
-                      <div>
-                        <p className="text-white text-sm font-semibold">{em.type}</p>
-                        <p className="text-[#888] text-xs">{em.location} • {em.time}</p>
-                        <p className="text-[#666] text-xs">Responder: {em.responder}</p>
-                      </div>
-                      <span className={`text-xs font-semibold px-3 py-1 rounded-full ${
-                        em.status === 'Active'
-                          ? 'bg-[#3a0000] text-[#cc0000]'
-                          : 'bg-[#1a3a1a] text-[#00cc44]'
-                      }`}>
-                        {em.status}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                ))}
               </div>
-
-              <div className="bg-[#1a1a1a] rounded-2xl p-6 border border-[#2a2a2a]">
-                <h2 className="text-white font-bold mb-6">Active Responders</h2>
-                <div className="flex flex-col gap-4">
-                  {PERSONNEL.filter(p => p.status === 'Active').map((p, i) => (
-                    <div key={i} className="flex items-center gap-3">
-                      <div className="w-9 h-9 bg-[#cc0000] rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">{p.name[0]}</span>
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-white text-sm font-semibold">{p.name}</p>
-                        <p className="text-[#888] text-xs">{p.role}</p>
-                      </div>
-                      <div className="w-2 h-2 bg-[#00cc44] rounded-full" />
-                    </div>
-                  ))}
-                </div>
+              <Link href="/register" className="inline-block bg-[#cc0000] text-white px-8 py-4 rounded-full font-semibold hover:bg-[#aa0000] transition">
+                Register your Organisation
+              </Link>
+            </div>
+            <div className="bg-[#111] border border-[#1a1a1a] rounded-2xl p-8">
+              <p className="text-white font-bold mb-6">Organisation types we support</p>
+              <div className="flex flex-col gap-4">
+                {[
+                  { icon: '🏥', label: 'Hospitals & Clinics' },
+                  { icon: '🚒', label: 'Fire Services' },
+                  { icon: '👮', label: 'Police & Security' },
+                  { icon: '🚑', label: 'Ambulance Services' },
+                  { icon: '🤝', label: 'NGOs & Volunteers' },
+                  { icon: '🔒', label: 'Private Security Firms' },
+                ].map((org) => (
+                  <div key={org.label} className="flex items-center gap-3 py-3 border-b border-[#1a1a1a] last:border-0">
+                    <span className="text-xl">{org.icon}</span>
+                    <span className="text-[#888] text-sm">{org.label}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-        )}
+        </div>
+      </section>
 
-        {activeTab === 'emergencies' && (
-          <div>
-            <h1 className="text-2xl font-bold text-white mb-6">All Emergencies</h1>
-            <div className="bg-[#1a1a1a] rounded-2xl border border-[#2a2a2a] overflow-hidden">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-[#2a2a2a]">
-                    {['Type', 'Location', 'Time', 'Responder', 'Status'].map((h) => (
-                      <th key={h} className="text-left text-[#888] text-sm font-semibold px-6 py-4">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {RECENT_EMERGENCIES.map((em, i) => (
-                    <tr key={i} className="border-b border-[#222] last:border-0 hover:bg-[#222] transition">
-                      <td className="px-6 py-4 text-white text-sm">{em.type}</td>
-                      <td className="px-6 py-4 text-[#888] text-sm">{em.location}</td>
-                      <td className="px-6 py-4 text-[#888] text-sm">{em.time}</td>
-                      <td className="px-6 py-4 text-[#888] text-sm">{em.responder}</td>
-                      <td className="px-6 py-4">
-                        <span className={`text-xs font-semibold px-3 py-1 rounded-full ${
-                          em.status === 'Active'
-                            ? 'bg-[#3a0000] text-[#cc0000]'
-                            : 'bg-[#1a3a1a] text-[#00cc44]'
-                        }`}>
-                          {em.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+      {/* Download CTA */}
+      <section id="download" className="py-24 px-6 bg-[#cc0000]">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">
+            Download ResQ today
+          </h2>
+          <p className="text-red-200 text-lg mb-10">
+            Free for all Nigerians. Available on Android.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="#" className="bg-white text-[#cc0000] px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-100 transition">
+              📱 Download for Android
+            </a>
+            <Link href="/register" className="border-2 border-white text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white hover:text-[#cc0000] transition">
+              Register Organisation
+            </Link>
           </div>
-        )}
+        </div>
+      </section>
 
-        {activeTab === 'personnel' && (
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-bold text-white">Personnel</h1>
-              <button className="bg-[#cc0000] text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-[#aa0000] transition">
-                + Add Personnel
-              </button>
+      {/* Footer */}
+      <footer className="py-12 px-6 border-t border-[#1a1a1a]">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-[#cc0000] rounded-lg flex items-center justify-center">
+              <div className="w-3 h-3 bg-white rounded-full" />
             </div>
-            <div className="bg-[#1a1a1a] rounded-2xl border border-[#2a2a2a] overflow-hidden">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-[#2a2a2a]">
-                    {['Name', 'Role', 'Responses', 'Status', 'Action'].map((h) => (
-                      <th key={h} className="text-left text-[#888] text-sm font-semibold px-6 py-4">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {PERSONNEL.map((p, i) => (
-                    <tr key={i} className="border-b border-[#222] last:border-0 hover:bg-[#222] transition">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-[#cc0000] rounded-full flex items-center justify-center">
-                            <span className="text-white text-xs font-bold">{p.name[0]}</span>
-                          </div>
-                          <span className="text-white text-sm">{p.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-[#888] text-sm">{p.role}</td>
-                      <td className="px-6 py-4 text-white text-sm">{p.responses}</td>
-                      <td className="px-6 py-4">
-                        <span className={`text-xs font-semibold px-3 py-1 rounded-full ${
-                          p.status === 'Active'
-                            ? 'bg-[#1a3a1a] text-[#00cc44]'
-                            : 'bg-[#1a1a1a] text-[#888]'
-                        }`}>
-                          {p.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <button className="text-[#cc0000] text-sm hover:underline">Remove</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <span className="font-bold tracking-wider">ResQ</span>
           </div>
-        )}
-
-        {activeTab === 'analytics' && (
-          <div>
-            <h1 className="text-2xl font-bold text-white mb-6">Analytics</h1>
-            <div className="grid grid-cols-2 gap-6">
-              {[
-                { title: 'Total Emergencies', value: '142', sub: 'All time' },
-                { title: 'Resolved', value: '138', sub: '97% resolution rate' },
-                { title: 'Avg Response Time', value: '4.2 mins', sub: 'This month' },
-                { title: 'Active Personnel', value: '8/24', sub: 'Currently online' },
-              ].map((item, i) => (
-                <div key={i} className="bg-[#1a1a1a] rounded-2xl p-6 border border-[#2a2a2a]">
-                  <p className="text-[#888] text-sm mb-2">{item.title}</p>
-                  <p className="text-4xl font-bold text-white mb-1">{item.value}</p>
-                  <p className="text-[#cc0000] text-sm">{item.sub}</p>
-                </div>
-              ))}
-            </div>
+          <p className="text-[#555] text-sm text-center">
+            &copy; 2025 ResQ. Emergency Responder Network. Built for Nigeria.
+          </p>
+          <div className="flex gap-6 text-sm text-[#555]">
+            <a href="#" className="hover:text-white transition">Privacy</a>
+            <a href="#" className="hover:text-white transition">Terms</a>
+            <a href="#" className="hover:text-white transition">Contact</a>
           </div>
-        )}
+        </div>
+      </footer>
 
-        {activeTab === 'settings' && (
-          <div>
-            <h1 className="text-2xl font-bold text-white mb-6">Settings</h1>
-            <div className="bg-[#1a1a1a] rounded-2xl p-6 border border-[#2a2a2a] max-w-lg">
-              <h2 className="text-white font-semibold mb-4">Organisation Details</h2>
-              {[
-                { label: 'Organisation Name', value: 'Lagos Fire Service' },
-                { label: 'Type', value: 'Fire Service' },
-                { label: 'RC Number', value: 'RC123456' },
-                { label: 'State', value: 'Lagos' },
-                { label: 'Contact Email', value: 'info@lagosfire.gov.ng' },
-              ].map((item) => (
-                <div key={item.label} className="flex justify-between items-center py-3 border-b border-[#222] last:border-0">
-                  <span className="text-[#888] text-sm">{item.label}</span>
-                  <span className="text-white text-sm font-semibold">{item.value}</span>
-                </div>
-              ))}
-              <button className="mt-6 w-full border border-[#cc0000] text-[#cc0000] py-3 rounded-full text-sm font-semibold hover:bg-[#cc0000] hover:text-white transition">
-                Edit Details
-              </button>
-            </div>
-          </div>
-        )}
-
-      </div>
-    </div>
+    </main>
   );
 }
