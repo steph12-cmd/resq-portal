@@ -47,7 +47,7 @@ export default function Home() {
         {/* Three role cards */}
         <div className="grid md:grid-cols-3 gap-6 w-full max-w-5xl">
 
-          <Link href="/citizen" className="group relative bg-white/[0.02] border border-white/[0.06] rounded-3xl p-8 text-left hover:bg-white/[0.05] hover:border-[#cc0000]/30 transition-all duration-300">
+          <Link href="/citizens" className="group relative bg-white/[0.02] border border-white/[0.06] rounded-3xl p-8 text-left hover:bg-white/[0.05] hover:border-[#cc0000]/30 transition-all duration-300">
             <div className="absolute inset-0 bg-gradient-to-b from-[#cc0000]/5 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative">
               <div className="w-12 h-12 bg-[#cc0000]/10 border border-[#cc0000]/20 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-[#cc0000]/20 transition">
@@ -83,7 +83,7 @@ export default function Home() {
             </div>
           </Link>
 
-          <Link href="/organisation" className="group relative bg-white/[0.02] border border-white/[0.06] rounded-3xl p-8 text-left hover:bg-white/[0.05] hover:border-[#cc0000]/30 transition-all duration-300 md:col-span-1">
+          <Link href="/organization" className="group relative bg-white/[0.02] border border-white/[0.06] rounded-3xl p-8 text-left hover:bg-white/[0.05] hover:border-[#cc0000]/30 transition-all duration-300 md:col-span-1">
             <div className="absolute inset-0 bg-gradient-to-b from-[#cc0000]/5 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative">
               <div className="w-12 h-12 bg-[#cc0000]/10 border border-[#cc0000]/20 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-[#cc0000]/20 transition">
