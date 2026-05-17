@@ -1,282 +1,216 @@
+'use client';
+import { useState } from 'react';
 import Link from 'next/link';
 
-export default function Home() {
+const STATS = [
+  { label: 'Total Personnel', value: '0', change: 'No personnel yet' },
+  { label: 'Active Responders', value: '0', change: 'None online' },
+  { label: 'Emergencies Today', value: '0', change: 'No emergencies' },
+  { label: 'Avg Response Time', value: '—', change: 'No data yet' },
+];
+
+export default function DashboardPage() {
+  const [activeTab, setActiveTab] = useState('overview');
+
   return (
-    <main className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">
+    <div className="min-h-screen bg-[#050505] text-white flex">
 
-      {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-sm border-b border-[#1a1a1a] px-6 py-4 flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-[#cc0000] rounded-lg flex items-center justify-center">
-            <div className="w-2 h-2 bg-white rounded-full" />
+      {/* Sidebar */}
+      <div className="w-64 bg-[#0a0a0a] border-r border-white/[0.06] flex flex-col p-6 fixed h-full">
+        <div className="flex items-center gap-3 mb-10">
+          <img src="/icon.png" alt="ResQ" className="w-8 h-8 rounded-xl" />
+          <div>
+            <p className="text-white font-bold text-sm">ResQ Portal</p>
+            <p className="text-white/30 text-xs">Organisation Dashboard</p>
           </div>
-          <span className="font-bold text-lg tracking-wider">ResQ</span>
         </div>
-        <div className="hidden md:flex items-center gap-8 text-sm text-[#888]">
-          <a href="#how" className="hover:text-white transition">How it works</a>
-          <a href="#features" className="hover:text-white transition">Features</a>
-          <a href="#organisations" className="hover:text-white transition">Organisations</a>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link href="/login" className="text-sm text-[#888] hover:text-white transition">
-            Login
-          </Link>
-          <Link href="/register" className="bg-[#cc0000] text-white text-sm px-4 py-2 rounded-full hover:bg-[#aa0000] transition">
-            Register Org
-          </Link>
-        </div>
-      </nav>
 
-      {/* Hero */}
-      <section className="min-h-screen flex flex-col items-center justify-center text-center px-6 pt-20">
-        <div className="inline-flex items-center gap-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded-full px-4 py-2 mb-8">
-          <div className="w-2 h-2 bg-[#cc0000] rounded-full" />
-          <span className="text-sm text-[#888]">Nigeria&apos;s Emergency Response Network</span>
-        </div>
-        <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-          Help is always <br />
-          <span className="text-[#cc0000]">near you</span>
-        </h1>
-        <p className="text-[#888] text-lg md:text-xl max-w-2xl mb-10 leading-relaxed">
-          ResQ connects Nigerians in emergency situations to verified responders in seconds.
-          No more helpless moments. Help is one tap away.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 mb-16">
-          <a href="#download" className="bg-[#cc0000] text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-[#aa0000] transition">
-            Download the App
-          </a>
-          <Link href="/register" className="border border-[#cc0000] text-[#cc0000] px-8 py-4 rounded-full font-semibold text-lg hover:bg-[#cc0000] hover:text-white transition">
-            Register Organisation
-          </Link>
-        </div>
-        <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-[#555]">
-          <div className="flex items-center gap-2">
-            <span className="text-[#cc0000] font-bold">🚨</span>
-            <span>One tap SOS</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[#cc0000] font-bold">✅</span>
-            <span>Verified responders</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[#cc0000] font-bold">📍</span>
-            <span>Live GPS tracking</span>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section className="py-20 px-6 border-y border-[#1a1a1a]">
-        <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        <nav className="flex flex-col gap-1 flex-1">
           {[
-            { number: '24', label: 'Emergency Types' },
-            { number: '3', label: 'User Roles' },
-            { number: '1', label: 'Tap to Safety' },
-            { number: '₦0', label: 'Cost to Citizens' },
-          ].map((stat) => (
-            <div key={stat.label}>
-              <p className="text-4xl font-bold text-[#cc0000] mb-2">{stat.number}</p>
-              <p className="text-[#888] text-sm">{stat.label}</p>
-            </div>
+            { id: 'overview', label: 'Overview' },
+            { id: 'emergencies', label: 'Emergencies' },
+            { id: 'personnel', label: 'Personnel' },
+            { id: 'analytics', label: 'Analytics' },
+            { id: 'settings', label: 'Settings' },
+          ].map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition text-left ${
+                activeTab === item.id
+                  ? 'bg-[#cc0000] text-white'
+                  : 'text-white/40 hover:bg-white/[0.04] hover:text-white'
+              }`}
+            >
+              {item.label}
+            </button>
           ))}
-        </div>
-      </section>
+        </nav>
 
-      {/* How it works */}
-      <section id="how" className="py-24 px-6">
-        <div className="max-w-5xl mx-auto">
-          <p className="text-[#cc0000] text-sm font-semibold text-center mb-4 uppercase tracking-widest">
-            How it works
-          </p>
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
-            Emergency response in 3 steps
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                step: '01',
-                title: 'Press SOS',
-                desc: 'Open ResQ and press the big red SOS button. Your GPS location is captured instantly.',
-                icon: '🚨',
-              },
-              {
-                step: '02',
-                title: 'Select Emergency',
-                desc: 'Choose from 24 emergency types. Add details to help responders prepare before arriving.',
-                icon: '📋',
-              },
-              {
-                step: '03',
-                title: 'Help Arrives',
-                desc: 'Verified responders near you are alerted instantly. Track them coming to you in real time.',
-                icon: '🦺',
-              },
-            ].map((item) => (
-              <div key={item.step} className="bg-[#111] border border-[#1a1a1a] rounded-2xl p-8">
-                <div className="w-12 h-12 bg-[#cc0000] rounded-xl flex items-center justify-center mb-6">
-                  <span className="text-xl">{item.icon}</span>
-                </div>
-                <p className="text-[#cc0000] text-sm font-semibold mb-2">{item.step}</p>
-                <h3 className="text-xl font-bold mb-3">{item.title}</h3>
-                <p className="text-[#888] leading-relaxed">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section id="features" className="py-24 px-6 bg-[#0d0d0d]">
-        <div className="max-w-5xl mx-auto">
-          <p className="text-[#cc0000] text-sm font-semibold text-center mb-4 uppercase tracking-widest">
-            Features
-          </p>
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
-            Built for Nigerian realities
-          </h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            {[
-              {
-                icon: '📍',
-                title: 'Automatic GPS Location',
-                desc: 'Your exact location is captured the moment you press SOS — even if you cannot speak.',
-              },
-              {
-                icon: '🔔',
-                title: 'Instant Push Notifications',
-                desc: 'Available responders near you are notified immediately with full emergency details.',
-              },
-              {
-                icon: '✅',
-                title: 'Verified Responders Only',
-                desc: 'Every responder is verified through their organisation before they can respond to any alert.',
-              },
-              {
-                icon: '📞',
-                title: 'Emergency Hotline Access',
-                desc: 'One tap access to Nigeria emergency hotline (112) directly from the alert screen.',
-              },
-              {
-                icon: '🗺️',
-                title: 'Live Navigation',
-                desc: 'Responders navigate to victims via Google Maps with real-time directions.',
-              },
-              {
-                icon: '🏢',
-                title: 'Organisation Dashboard',
-                desc: 'Organisations manage their responders, track responses, and view analytics from a web portal.',
-              },
-            ].map((feature) => (
-              <div key={feature.title} className="flex gap-4 bg-[#111] border border-[#1a1a1a] rounded-2xl p-6">
-                <div className="w-12 h-12 bg-[#1a1a1a] rounded-xl flex items-center justify-center shrink-0">
-                  <span className="text-2xl">{feature.icon}</span>
-                </div>
-                <div>
-                  <h3 className="font-bold mb-2">{feature.title}</h3>
-                  <p className="text-[#888] text-sm leading-relaxed">{feature.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* For Organisations */}
-      <section id="organisations" className="py-24 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+        <div className="border-t border-white/[0.06] pt-4">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 bg-[#cc0000] rounded-full flex items-center justify-center">
+              <span className="text-white text-xs font-bold">A</span>
+            </div>
             <div>
-              <p className="text-[#cc0000] text-sm font-semibold mb-4 uppercase tracking-widest">
-                For Organisations
-              </p>
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                Power your emergency response with ResQ
-              </h2>
-              <p className="text-[#888] leading-relaxed mb-8">
-                Whether you are a hospital, private security firm, fire service or NGO —
-                ResQ gives you the digital infrastructure to respond faster, track better, and save more lives.
-              </p>
-              <div className="flex flex-col gap-4 mb-8">
-                {[
-                  'Real-time emergency alerts for your team',
-                  'Web dashboard to manage all personnel',
-                  'Analytics and response time tracking',
-                  'Automatic dispatch to nearest responder',
-                ].map((item) => (
-                  <div key={item} className="flex items-center gap-3">
-                    <div className="w-5 h-5 bg-[#cc0000] rounded-full flex items-center justify-center shrink-0">
-                      <span className="text-white text-xs">✓</span>
-                    </div>
-                    <span className="text-[#888] text-sm">{item}</span>
-                  </div>
-                ))}
+              <p className="text-white text-xs font-semibold">Admin</p>
+              <p className="text-white/30 text-xs">Organisation</p>
+            </div>
+          </div>
+          <Link href="/login" className="text-white/20 text-xs hover:text-white/50 transition">
+            Logout
+          </Link>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="ml-64 flex-1 p-8">
+
+        {activeTab === 'overview' && (
+          <div>
+            <div className="mb-8">
+              <h1 className="text-2xl font-black text-white mb-1">Dashboard</h1>
+              <p className="text-white/30 text-sm">Welcome to your ResQ organisation portal</p>
+            </div>
+
+            <div className="grid grid-cols-4 gap-4 mb-8">
+              {STATS.map((stat) => (
+                <div key={stat.label} className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5">
+                  <p className="text-3xl font-black text-white mb-1">{stat.value}</p>
+                  <p className="text-white/40 text-sm mb-1">{stat.label}</p>
+                  <p className="text-white/20 text-xs">{stat.change}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-3 gap-6">
+              <div className="col-span-2 bg-white/[0.02] border border-white/[0.06] rounded-2xl p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-white font-bold">Recent Emergencies</h2>
+                  <button
+                    onClick={() => setActiveTab('emergencies')}
+                    className="text-[#cc0000] text-sm hover:underline"
+                  >
+                    View all
+                  </button>
+                </div>
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-2 h-2 bg-[#cc0000] rounded-full mb-4" />
+                  <p className="text-white/40 text-sm">No emergencies yet</p>
+                  <p className="text-white/20 text-xs mt-1">Emergencies will appear here when your responders go live</p>
+                </div>
               </div>
-              <Link href="/register" className="inline-block bg-[#cc0000] text-white px-8 py-4 rounded-full font-semibold hover:bg-[#aa0000] transition">
-                Register your Organisation
-              </Link>
-            </div>
-            <div className="bg-[#111] border border-[#1a1a1a] rounded-2xl p-8">
-              <p className="text-white font-bold mb-6">Organisation types we support</p>
-              <div className="flex flex-col gap-4">
-                {[
-                  { icon: '🏥', label: 'Hospitals & Clinics' },
-                  { icon: '🚒', label: 'Fire Services' },
-                  { icon: '👮', label: 'Police & Security' },
-                  { icon: '🚑', label: 'Ambulance Services' },
-                  { icon: '🤝', label: 'NGOs & Volunteers' },
-                  { icon: '🔒', label: 'Private Security Firms' },
-                ].map((org) => (
-                  <div key={org.label} className="flex items-center gap-3 py-3 border-b border-[#1a1a1a] last:border-0">
-                    <span className="text-xl">{org.icon}</span>
-                    <span className="text-[#888] text-sm">{org.label}</span>
-                  </div>
-                ))}
+
+              <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-6">
+                <h2 className="text-white font-bold mb-6">Active Responders</h2>
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-2 h-2 bg-[#cc0000] rounded-full mb-4" />
+                  <p className="text-white/40 text-sm">No responders online</p>
+                  <p className="text-white/20 text-xs mt-1">Add personnel to get started</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        )}
 
-      {/* Download CTA */}
-      <section id="download" className="py-24 px-6 bg-[#cc0000]">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">
-            Download ResQ today
-          </h2>
-          <p className="text-red-200 text-lg mb-10">
-            Free for all Nigerians. Available on Android.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="#" className="bg-white text-[#cc0000] px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-100 transition">
-              📱 Download for Android
-            </a>
-            <Link href="/register" className="border-2 border-white text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white hover:text-[#cc0000] transition">
-              Register Organisation
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="py-12 px-6 border-t border-[#1a1a1a]">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-[#cc0000] rounded-lg flex items-center justify-center">
-              <div className="w-3 h-3 bg-white rounded-full" />
+        {activeTab === 'emergencies' && (
+          <div>
+            <h1 className="text-2xl font-black text-white mb-8">Emergencies</h1>
+            <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-hidden">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-white/[0.06]">
+                    {['Type', 'Location', 'Time', 'Responder', 'Status'].map((h) => (
+                      <th key={h} className="text-left text-white/30 text-xs font-semibold px-6 py-4 uppercase tracking-widest">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colSpan={5} className="px-6 py-16 text-center text-white/30 text-sm">
+                      No emergencies recorded yet
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-            <span className="font-bold tracking-wider">ResQ</span>
           </div>
-          <p className="text-[#555] text-sm text-center">
-            &copy; 2025 ResQ. Emergency Responder Network. Built for Nigeria.
-          </p>
-          <div className="flex gap-6 text-sm text-[#555]">
-            <a href="#" className="hover:text-white transition">Privacy</a>
-            <a href="#" className="hover:text-white transition">Terms</a>
-            <a href="#" className="hover:text-white transition">Contact</a>
-          </div>
-        </div>
-      </footer>
+        )}
 
-    </main>
+        {activeTab === 'personnel' && (
+          <div>
+            <div className="flex justify-between items-center mb-8">
+              <h1 className="text-2xl font-black text-white">Personnel</h1>
+              <button className="bg-[#cc0000] text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#aa0000] transition">
+                + Add Personnel
+              </button>
+            </div>
+            <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-hidden">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-white/[0.06]">
+                    {['Name', 'Role', 'Responses', 'Status', 'Action'].map((h) => (
+                      <th key={h} className="text-left text-white/30 text-xs font-semibold px-6 py-4 uppercase tracking-widest">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colSpan={5} className="px-6 py-16 text-center text-white/30 text-sm">
+                      No personnel added yet. Share your organisation code with your team to get started.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'analytics' && (
+          <div>
+            <h1 className="text-2xl font-black text-white mb-8">Analytics</h1>
+            <div className="grid grid-cols-2 gap-6">
+              {[
+                { title: 'Total Emergencies', value: '0', sub: 'All time' },
+                { title: 'Resolved', value: '0', sub: '0% resolution rate' },
+                { title: 'Avg Response Time', value: '—', sub: 'No data yet' },
+                { title: 'Active Personnel', value: '0', sub: 'Currently online' },
+              ].map((item) => (
+                <div key={item.title} className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-8">
+                  <p className="text-white/30 text-sm mb-2">{item.title}</p>
+                  <p className="text-4xl font-black text-white mb-1">{item.value}</p>
+                  <p className="text-[#cc0000] text-sm">{item.sub}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'settings' && (
+          <div>
+            <h1 className="text-2xl font-black text-white mb-8">Settings</h1>
+            <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-8 max-w-lg">
+              <h2 className="text-white font-bold mb-6">Organisation Details</h2>
+              {[
+                { label: 'Organisation Name', value: 'Your Organisation' },
+                { label: 'Type', value: '—' },
+                { label: 'RC Number', value: '—' },
+                { label: 'State', value: '—' },
+                { label: 'Contact Email', value: '—' },
+              ].map((item) => (
+                <div key={item.label} className="flex justify-between items-center py-4 border-b border-white/[0.06] last:border-0">
+                  <span className="text-white/30 text-sm">{item.label}</span>
+                  <span className="text-white text-sm font-semibold">{item.value}</span>
+                </div>
+              ))}
+              <button className="mt-6 w-full border border-[#cc0000] text-[#cc0000] py-3 rounded-xl text-sm font-semibold hover:bg-[#cc0000] hover:text-white transition">
+                Edit Details
+              </button>
+            </div>
+          </div>
+        )}
+
+      </div>
+    </div>
   );
 }
