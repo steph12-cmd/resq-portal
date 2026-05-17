@@ -14,10 +14,8 @@ export default function CitizenPage() {
       <nav className="relative z-50 px-6 py-6">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-[#cc0000] rounded-xl flex items-center justify-center">
-              <div className="w-3 h-3 bg-white rounded-full" />
-            </div>
-            <span className="font-bold text-lg tracking-wider">ResQ</span>
+            <img src="/icon.png" alt="ResQ" className="w-8 h-8 rounded-xl" />
+<span className="font-bold text-lg tracking-wider">ResQ</span>
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/" className="text-sm text-white/40 hover:text-white transition">
