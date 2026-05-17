@@ -14,8 +14,8 @@ export default function CitizenPage() {
       <nav className="relative z-50 px-6 py-6">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center gap-3">
-            <img src="/icon.png" alt="ResQ" className="w-8 h-8 rounded-xl" />
-<span className="font-bold text-lg tracking-wider">ResQ</span>
+            <img src="/icon.png" alt="ResQ" className="w-10 h-10 rounded-xl" />
+             <span className="font-bold text-lg tracking-wider">ResQ</span>
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/" className="text-sm text-white/40 hover:text-white transition">
@@ -173,10 +173,8 @@ export default function CitizenPage() {
       <footer className="py-8 px-6 border-t border-white/[0.04]">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-6 h-6 bg-[#cc0000] rounded-lg flex items-center justify-center">
-              <div className="w-2 h-2 bg-white rounded-full" />
-            </div>
-            <span className="font-bold text-sm tracking-wider">ResQ</span>
+           <img src="/icon.png" alt="ResQ" className="w-6 h-6 rounded-lg" />
+<span className="font-bold text-sm tracking-wider">ResQ</span>
           </Link>
           <p className="text-white/20 text-xs">&copy; 2025 ResQ. Built for Nigeria.</p>
           <div className="flex gap-6 text-xs text-white/20">
