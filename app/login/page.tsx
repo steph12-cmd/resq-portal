@@ -15,13 +15,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
 
         <div className="flex flex-col items-center mb-10">
-          <div className="w-16 h-16 bg-[#cc0000] rounded-xl flex items-center justify-center mb-4">
-            <div className="w-10 h-10 bg-[#ff2200] rounded-lg flex items-center justify-center">
-              <div className="w-5 h-5 bg-[#ffcccc] rounded-full flex items-center justify-center">
-                <div className="w-2.5 h-2.5 bg-[#cc0000] rounded-full" />
-              </div>
-            </div>
-          </div>
+          <img src="/icon.png" alt="ResQ" className="w-16 h-16 rounded-2xl mb-4" />
           <div className="w-20 h-2 bg-[#888] rounded mt-1" />
           <div className="w-24 h-1.5 bg-[#666] rounded mt-1" />
         </div>
