@@ -14,11 +14,11 @@ export default function LoginPage() {
 
       <div className="w-full max-w-md">
 
-        <div className="flex flex-col items-center mb-10">
-          <img src="/icon.png" alt="ResQ" className="w-16 h-16 rounded-2xl mb-4" />
-          <div className="w-20 h-2 bg-[#888] rounded mt-1" />
-          <div className="w-24 h-1.5 bg-[#666] rounded mt-1" />
-        </div>
+        <div className="flex flex-col items-center mb-8">
+  <img src="/icon.png" alt="ResQ" className="w-16 h-16 rounded-2xl mb-3" />
+  <h1 className="text-2xl font-black text-white tracking-wider">ResQ</h1>
+  <p className="text-white/30 text-sm">Organisation Portal</p>
+</div>
 
         <h1 className="text-3xl font-bold text-white mb-2">Welcome back 👋</h1>
         <p className="text-[#888] text-sm mb-8">Login to your ResQ organisation portal</p>
