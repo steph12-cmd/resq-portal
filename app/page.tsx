@@ -104,7 +104,7 @@ export default function Home() {
         {/* Bottom stats */}
         <div className="mt-16 flex flex-wrap justify-center gap-8 text-center">
           {[
-            { number: '24', label: 'Emergency Types' },
+            { number: '26+', label: 'Emergency Types' },
             { number: '1 tap', label: 'To Safety' },
             { number: 'Free', label: 'For Citizens' },
             { number: 'Verified', label: 'Responders Only' },

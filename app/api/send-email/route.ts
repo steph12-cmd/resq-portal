@@ -1,9 +1,16 @@
 import { Resend } from 'resend';
 import { NextResponse } from 'next/server';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(request: Request) {
+  // 1. Safeguard: Check if the key exists before initializing
+  if (!process.env.RESEND_API_KEY) {
+    console.error("RESEND_API_KEY is missing in environment variables");
+    return NextResponse.json({ success: false, error: 'Server configuration error' }, { status: 500 });
+  }
+
+  // 2. Initialize inside the function to prevent build-time errors
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
   try {
     const { type, to, orgName, responderName, reason } = await request.json();
 
@@ -137,7 +144,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, data });
 
-  } catch (error) {
-    return NextResponse.json({ success: false, error }, { status: 500 });
+  } catch (error: any) {
+    // 3. Safer error handling for JSON serialization
+    console.error("Email sending failed:", error);
+    return NextResponse.json({ success: false, error: error.message || "Failed to send email" }, { status: 500 });
   }
 }
