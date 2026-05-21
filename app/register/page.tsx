@@ -38,7 +38,7 @@ export default function RegisterPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-white">Register Organisation</h1>
-            <p className="text-[#888] text-sm">Join ResQ as a verified response organisation</p>
+            <p className="text-[#888] text-sm">Join Siren as a verified response organisation</p>
           </div>
         </div>
 
@@ -221,7 +221,7 @@ export default function RegisterPage() {
 
             <div className="bg-[#1a1a1a] rounded-xl p-4">
               <p className="text-[#888] text-sm leading-relaxed">
-                After submission your organisation will be reviewed by the ResQ team within 24-48 hours. You will receive an email once verified.
+                After submission your organisation will be reviewed by the Siren team within 24-48 hours. You will receive an email once verified.
               </p>
             </div>
 

@@ -14,8 +14,8 @@ export default function OrganisationPage() {
       <nav className="relative z-50 px-6 py-6">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center gap-3">
-           <img src="/icon.png" alt="ResQ" className="w-10 h-10 rounded-xl" />
-            <span className="font-bold text-lg tracking-wider">ResQ</span>
+           <img src="/icon.png" alt="Siren" className="w-10 h-10 rounded-xl" />
+            <span className="font-bold text-lg tracking-wider">Siren</span>
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/" className="text-sm text-white/40 hover:text-white transition">Back</Link>
@@ -43,7 +43,7 @@ export default function OrganisationPage() {
           </h1>
 
           <p className="text-white/40 text-xl max-w-2xl mb-12 leading-relaxed">
-            ResQ gives hospitals, security firms, fire services and NGOs the digital command centre to deploy faster, track better and save more lives across Nigeria.
+            Siren gives hospitals, security firms, fire services and NGOs the digital command centre to deploy faster, track better and save more lives across Nigeria.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4">
@@ -113,7 +113,7 @@ export default function OrganisationPage() {
                 Who can register
               </h2>
               <p className="text-white/40 text-sm leading-relaxed mb-8">
-                Any legitimate emergency response organisation operating in Nigeria can register on ResQ. All organisations are verified by the ResQ team before activation.
+                Any legitimate emergency response organisation operating in Nigeria can register on Siren. All organisations are verified by the Siren team before activation.
               </p>
               <Link href="/register" className="inline-block bg-[#cc0000] text-white px-8 py-4 rounded-xl font-bold hover:bg-[#aa0000] transition shadow-xl shadow-red-900/30">
                 Start Registration
@@ -173,7 +173,7 @@ export default function OrganisationPage() {
               <br />your emergency response?
             </h2>
             <p className="text-white/40 mb-10 max-w-md mx-auto text-sm">
-              Join the growing network of organisations using ResQ to save lives across Nigeria.
+              Join the growing network of organisations using Siren to save lives across Nigeria.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/register" className="bg-[#cc0000] text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-[#aa0000] transition shadow-2xl shadow-red-900/40">
@@ -191,10 +191,10 @@ export default function OrganisationPage() {
       <footer className="py-8 px-6 border-t border-white/[0.04]">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <Link href="/" className="flex items-center gap-3">
-           <img src="/icon.png" alt="ResQ" className="w-6 h-6 rounded-lg" />
-<span className="font-bold text-sm tracking-wider">ResQ</span>
+           <img src="/icon.png" alt="Siren" className="w-6 h-6 rounded-lg" />
+<span className="font-bold text-sm tracking-wider">Siren</span>
           </Link>
-          <p className="text-white/20 text-xs">&copy; 2025 ResQ. Built for Nigeria.</p>
+          <p className="text-white/20 text-xs">&copy; 2025 Siren. Built for Nigeria.</p>
           <div className="flex gap-6 text-xs text-white/20">
             <a href="#" className="hover:text-white transition">Privacy</a>
             <a href="#" className="hover:text-white transition">Terms</a>

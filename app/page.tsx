@@ -14,8 +14,8 @@ export default function Home() {
       <nav className="relative z-50 px-6 py-6">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <img src="/icon.png" alt="ResQ" className="w-10 h-10 rounded-xl" />
-<span className="font-bold text-lg tracking-wider">ResQ</span>
+            <img src="/icon.png" alt="Siren" className="w-10 h-10 rounded-xl" />
+<span className="font-bold text-lg tracking-wider">Siren</span>
           </div>
           <Link href="/login" className="text-sm text-white/40 hover:text-white transition">
             Organisation Login
@@ -39,7 +39,7 @@ export default function Home() {
         </h1>
 
         <p className="text-white/40 text-lg max-w-xl mb-16 leading-relaxed">
-          ResQ connects citizens, verified responders and organisations into one seamless emergency response network.
+          Siren connects citizens, verified responders and organisations into one seamless emergency response network.
         </p>
 
         {/* Three role cards */}
@@ -121,11 +121,11 @@ export default function Home() {
       <footer className="relative z-10 py-8 px-6 border-t border-white/[0.04]">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-3">
-            <img src="/icon.png" alt="ResQ" className="w-6 h-6 rounded-lg" />
-<span className="font-bold text-sm tracking-wider">ResQ</span>
+            <img src="/icon.png" alt="Siren" className="w-6 h-6 rounded-lg" />
+<span className="font-bold text-sm tracking-wider">Siren</span>
           </div>
           <p className="text-white/20 text-xs text-center">
-            &copy; 2025 ResQ. Emergency Responder Network. Built for Nigeria.
+            &copy; 2025 Siren. Emergency Responder Network. Built for Nigeria.
           </p>
           <div className="flex gap-6 text-xs text-white/20">
             <a href="#" className="hover:text-white transition">Privacy</a>

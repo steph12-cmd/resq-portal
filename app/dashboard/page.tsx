@@ -18,9 +18,9 @@ export default function DashboardPage() {
       {/* Sidebar */}
       <div className="w-64 bg-[#0a0a0a] border-r border-white/[0.06] flex flex-col p-6 fixed h-full">
         <div className="flex items-center gap-3 mb-10">
-          <img src="/icon.png" alt="ResQ" className="w-8 h-8 rounded-xl" />
+          <img src="/icon.png" alt="Siren" className="w-8 h-8 rounded-xl" />
           <div>
-            <p className="text-white font-bold text-sm">ResQ Portal</p>
+            <p className="text-white font-bold text-sm">Siren Portal</p>
             <p className="text-white/30 text-xs">Organisation Dashboard</p>
           </div>
         </div>
@@ -70,7 +70,7 @@ export default function DashboardPage() {
           <div>
             <div className="mb-8">
               <h1 className="text-2xl font-black text-white mb-1">Dashboard</h1>
-              <p className="text-white/30 text-sm">Welcome to your ResQ organisation portal</p>
+              <p className="text-white/30 text-sm">Welcome to your Siren organisation portal</p>
             </div>
 
             <div className="grid grid-cols-4 gap-4 mb-8">

@@ -15,13 +15,13 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
 
         <div className="flex flex-col items-center mb-8">
-  <img src="/icon.png" alt="ResQ" className="w-16 h-16 rounded-2xl mb-3" />
-  <h1 className="text-2xl font-black text-white tracking-wider">ResQ</h1>
+  <img src="/icon.png" alt="Siren" className="w-16 h-16 rounded-2xl mb-3" />
+  <h1 className="text-2xl font-black text-white tracking-wider">Siren</h1>
   <p className="text-white/30 text-sm">Organisation Portal</p>
 </div>
 
         <h1 className="text-3xl font-bold text-white mb-2">Welcome back 👋</h1>
-        <p className="text-[#888] text-sm mb-8">Login to your ResQ organisation portal</p>
+        <p className="text-[#888] text-sm mb-8">Login to your Siren organisation portal</p>
 
         <div className="flex flex-col gap-5">
 
@@ -85,7 +85,7 @@ export default function LoginPage() {
 
         <p className="text-[#555] text-sm text-center mt-8">
           Are you a responder?{' '}
-          <span className="text-[#cc0000] cursor-pointer">Download the ResQ app</span>
+          <span className="text-[#cc0000] cursor-pointer">Download the Siren app</span>
         </p>
 
       </div>

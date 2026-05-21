@@ -14,8 +14,8 @@ export default function ResponderPage() {
       <nav className="relative z-50 px-6 py-6">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center gap-3">
-            <img src="/icon.png" alt="ResQ" className="w-10 h-10 rounded-xl" />
-             <span className="font-bold text-lg tracking-wider">ResQ</span>
+            <img src="/icon.png" alt="Siren" className="w-10 h-10 rounded-xl" />
+             <span className="font-bold text-lg tracking-wider">Siren</span>
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/" className="text-sm text-white/40 hover:text-white transition">Back</Link>
@@ -116,7 +116,7 @@ export default function ResponderPage() {
             Who can be a responder
           </h2>
           <p className="text-white/40 mb-12 max-w-xl text-sm">
-            All responders must be verified through a registered organisation on ResQ before they can receive alerts.
+            All responders must be verified through a registered organisation on Siren before they can receive alerts.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {[
@@ -145,11 +145,11 @@ export default function ResponderPage() {
               Ready to save lives?
             </h2>
             <p className="text-white/40 mb-10 max-w-md mx-auto text-sm">
-              Download the ResQ app and sign up as a responder through your organisation to get started.
+              Download the Siren app and sign up as a responder through your organisation to get started.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a href="#" className="bg-[#cc0000] text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-[#aa0000] transition shadow-2xl shadow-red-900/40">
-                Download ResQ
+                Download Siren
               </a>
               <Link href="/register" className="bg-white/[0.04] border border-white/[0.08] text-white px-10 py-4 rounded-xl font-semibold text-lg hover:bg-white/[0.08] transition">
                 Register Your Organisation
@@ -163,10 +163,10 @@ export default function ResponderPage() {
       <footer className="py-8 px-6 border-t border-white/[0.04]">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <Link href="/" className="flex items-center gap-3">
-            <img src="/icon.png" alt="ResQ" className="w-6 h-6 rounded-lg" />
-            <span className="font-bold text-sm tracking-wider">ResQ</span>
+            <img src="/icon.png" alt="Siren" className="w-6 h-6 rounded-lg" />
+            <span className="font-bold text-sm tracking-wider">Siren</span>
           </Link>
-          <p className="text-white/20 text-xs">&copy; 2025 ResQ. Built for Nigeria.</p>
+          <p className="text-white/20 text-xs">&copy; 2025 Siren. Built for Nigeria.</p>
           <div className="flex gap-6 text-xs text-white/20">
             <a href="#" className="hover:text-white transition">Privacy</a>
             <a href="#" className="hover:text-white transition">Terms</a>
