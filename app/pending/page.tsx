@@ -14,16 +14,16 @@ export default function PendingPage() {
           Application Submitted!
         </h1>
         <p className="text-[#888] text-base mb-8 leading-relaxed">
-          Your organisation has been submitted for review. The ResQ team will verify your details within <span className="text-white font-semibold">24-48 hours.</span>
+          Your organisation has been submitted for review. The Siren team will verify your details within <span className="text-white font-semibold">24-48 hours.</span>
         </p>
 
         <div className="bg-[#1a1a1a] rounded-2xl p-6 mb-8 text-left">
           <p className="text-white font-semibold mb-4">What happens next?</p>
           {[
-            { step: '01', title: 'Review', desc: 'ResQ team reviews your organisation details and documents' },
+            { step: '01', title: 'Review', desc: 'Siren team reviews your organisation details and documents' },
             { step: '02', title: 'Verification', desc: 'We verify your RC number and official credentials' },
             { step: '03', title: 'Activation', desc: 'Your account is activated and you receive your org code' },
-            { step: '04', title: 'Onboard Staff', desc: 'Share the org code with your personnel to join ResQ' },
+            { step: '04', title: 'Onboard Staff', desc: 'Share the org code with your personnel to join Siren' },
           ].map((item) => (
             <div key={item.step} className="flex gap-4 mb-5 last:mb-0">
               <div className="w-10 h-10 bg-[#cc0000] rounded-full flex items-center justify-center shrink-0">

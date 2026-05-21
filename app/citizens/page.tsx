@@ -14,8 +14,8 @@ export default function CitizenPage() {
       <nav className="relative z-50 px-6 py-6">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center gap-3">
-            <img src="/icon.png" alt="ResQ" className="w-10 h-10 rounded-xl" />
-             <span className="font-bold text-lg tracking-wider">ResQ</span>
+            <img src="/icon.png" alt="Siren" className="w-10 h-10 rounded-xl" />
+             <span className="font-bold text-lg tracking-wider">Siren</span>
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/" className="text-sm text-white/40 hover:text-white transition">
@@ -45,12 +45,12 @@ export default function CitizenPage() {
           </h1>
 
           <p className="text-white/40 text-xl max-w-2xl mb-12 leading-relaxed">
-            In any emergency, every second counts. ResQ connects you to verified responders near you with a single tap — no calls, no waiting, no confusion.
+            In any emergency, every second counts. Siren connects you to verified responders near you with a single tap — no calls, no waiting, no confusion.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4">
             <a href="#download" className="bg-[#cc0000] text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#aa0000] transition shadow-2xl shadow-red-900/40 text-center">
-              Download ResQ Free
+              Download Siren Free
             </a>
             <a href="#how" className="bg-white/[0.04] border border-white/[0.08] text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white/[0.08] transition text-center">
               See How It Works
@@ -72,7 +72,7 @@ export default function CitizenPage() {
               {
                 step: '01',
                 title: 'Press SOS',
-                desc: 'Open ResQ and press the SOS button. Your GPS coordinates are captured instantly — no typing, no delay.',
+                desc: 'Open Siren and press the SOS button. Your GPS coordinates are captured instantly — no typing, no delay.',
               },
               {
                 step: '02',
@@ -104,7 +104,7 @@ export default function CitizenPage() {
             24 emergency types
           </h2>
           <p className="text-white/40 mb-12 max-w-xl">
-            From medical emergencies to natural disasters — ResQ covers every situation Nigerians face daily.
+            From medical emergencies to natural disasters — Siren covers every situation Nigerians face daily.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
@@ -157,7 +157,7 @@ export default function CitizenPage() {
           <div className="bg-gradient-to-br from-[#cc0000]/10 via-transparent to-transparent border border-[#cc0000]/20 rounded-3xl p-12 md:p-16 text-center">
             <p className="text-[#cc0000] text-xs font-bold uppercase tracking-[0.3em] mb-4">Get Started</p>
             <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-4">
-              Download ResQ today
+              Download Siren today
             </h2>
             <p className="text-white/40 mb-10 max-w-md mx-auto">
               Free forever for citizens. Available on Android. iOS coming soon.
@@ -173,10 +173,10 @@ export default function CitizenPage() {
       <footer className="py-8 px-6 border-t border-white/[0.04]">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <Link href="/" className="flex items-center gap-3">
-           <img src="/icon.png" alt="ResQ" className="w-6 h-6 rounded-lg" />
-<span className="font-bold text-sm tracking-wider">ResQ</span>
+           <img src="/icon.png" alt="Siren" className="w-6 h-6 rounded-lg" />
+<span className="font-bold text-sm tracking-wider">Siren</span>
           </Link>
-          <p className="text-white/20 text-xs">&copy; 2025 ResQ. Built for Nigeria.</p>
+          <p className="text-white/20 text-xs">&copy; 2025 Siren. Built for Nigeria.</p>
           <div className="flex gap-6 text-xs text-white/20">
             <a href="#" className="hover:text-white transition">Privacy</a>
             <a href="#" className="hover:text-white transition">Terms</a>
