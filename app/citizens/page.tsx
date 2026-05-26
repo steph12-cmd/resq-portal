@@ -101,7 +101,7 @@ export default function CitizenPage() {
         <div className="max-w-6xl mx-auto">
           <p className="text-[#cc0000] text-xs font-bold uppercase tracking-[0.3em] mb-4">Coverage</p>
           <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-4">
-            24 emergency types
+            26+ emergency types
           </h2>
           <p className="text-white/40 mb-12 max-w-xl">
             From medical emergencies to natural disasters — Siren covers every situation Nigerians face daily.
@@ -110,10 +110,11 @@ export default function CitizenPage() {
             {[
               'Medical Emergency', 'Fire', 'Armed Robbery', 'Road Accident',
               'Flooding', 'Child in Danger', 'Domestic Violence', 'Kidnapping',
-              'Gas Explosion', 'Crowd Crush', 'Drowning', 'Snake Attack',
+              'Gas Explosion', 'Crowd Crush', 'Drowning', 'Animal Attack',
               'Electric Shock', 'Building Collapse', 'Poisoning', 'Stabbing',
               'Emergency Childbirth', 'Choking', 'Mental Health Crisis', 'Drug Overdose',
               'Pipeline Explosion', 'Boat Emergency', 'Lightning Strike', 'General Emergency',
+              'Rape', 'Vandalism', 
             ].map((type) => (
               <div key={type} className="bg-white/[0.02] border border-white/[0.05] rounded-xl px-4 py-3 hover:border-[#cc0000]/20 transition">
                 <p className="text-white/50 text-xs">{type}</p>
