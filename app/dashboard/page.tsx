@@ -175,7 +175,7 @@ export default function DashboardPage() {
             </div>
 
             {selectedEmergency.location && (
-              
+              <a
                 href={`https://maps.google.com/?q=${selectedEmergency.location.latitude},${selectedEmergency.location.longitude}`}
                 target="_blank"
                 rel="noreferrer"
