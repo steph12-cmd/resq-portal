@@ -2,7 +2,15 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '../lib/firebase';
-import { collection, query, where, onSnapshot, getDocs, doc, updateDoc } from 'firebase/firestore';
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  getDocs,
+  doc,
+  updateDoc,
+} from 'firebase/firestore';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -17,37 +25,57 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const stored = localStorage.getItem('sirenOrg');
-    if (!stored) { router.replace('/login'); return; }
+    if (!stored) {
+      router.replace('/login');
+      return;
+    }
     const orgData = JSON.parse(stored);
     setOrg(orgData);
     fetchOrgData(orgData);
 
-    const unsubEmergencies = onSnapshot(
-      query(collection(db, 'emergencies'), where('status', 'in', ['active', 'accepted'])),
+    // Listen for ALL active emergencies in real time
+    const unsubActive = onSnapshot(
+      query(
+        collection(db, 'emergencies'),
+        where('status', 'in', ['active', 'accepted'])
+      ),
       (snap) => {
         const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         setEmergencies(list);
+      },
+      (error) => {
+        console.log('Emergency listener error:', error);
       }
     );
 
+    // Listen for all emergencies for analytics
     const unsubAll = onSnapshot(
       collection(db, 'emergencies'),
       (snap) => {
         setAllEmergencies(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      },
+      (error) => {
+        console.log('All emergencies listener error:', error);
       }
     );
 
-    return () => { unsubEmergencies(); unsubAll(); };
+    return () => {
+      unsubActive();
+      unsubAll();
+    };
   }, []);
 
   const fetchOrgData = async (orgData: any) => {
     try {
       const respSnap = await getDocs(
-        query(collection(db, 'responders'), where('orgCode', '==', orgData.orgCode))
+        query(
+          collection(db, 'responders'),
+          where('orgCode', '==', orgData.orgCode)
+        )
       );
       setResponders(respSnap.docs.map(d => ({ id: d.id, ...d.data() })));
     } catch (error) {
-      console.log('Error:', error);
+      console.log('Error fetching org data:', error);
     } finally {
       setLoading(false);
     }
@@ -67,20 +95,23 @@ export default function DashboardPage() {
         responderOrgId: org.id,
         responderOrgName: org.orgName,
         responderOrgType: org.orgType,
+        responderName: org.orgName,
         acceptedAt: new Date(),
       });
       setSelectedEmergency(null);
       alert(`✅ ${org.orgName} is now responding to this emergency`);
     } catch (error) {
       console.log('Error accepting emergency:', error);
+      alert('Failed to accept emergency. Please try again.');
     }
   };
 
   const handleDeclineEmergency = async (em: any) => {
     if (!org) return;
     try {
+      const currentDeclined = em.declinedOrgs || [];
       await updateDoc(doc(db, 'emergencies', em.id), {
-        declinedOrgs: [...(em.declinedOrgs || []), org.id],
+        declinedOrgs: [...currentDeclined, org.id],
       });
       setSelectedEmergency(null);
     } catch (error) {
@@ -90,11 +121,15 @@ export default function DashboardPage() {
 
   const verifiedResponders = responders.filter(r => r.isVerified);
   const pendingResponders = responders.filter(r => !r.isVerified);
+
+  // Filter emergencies — don't show ones this org declined
   const activeEmergencies = emergencies.filter(e => {
-    if (e.declinedOrgs?.includes(org?.id)) return false;
-    return true;
+    const declinedOrgs = e.declinedOrgs || [];
+    return !declinedOrgs.includes(org?.id);
   });
+
   const resolvedEmergencies = allEmergencies.filter(e => e.status === 'resolved');
+  const orgResponses = allEmergencies.filter(e => e.responderOrgName === org?.orgName);
 
   if (loading) return (
     <div className="min-h-screen bg-[#050505] flex items-center justify-center">
@@ -126,10 +161,10 @@ export default function DashboardPage() {
                 { label: 'Email', value: selectedStaff.email || 'Not provided' },
                 { label: 'Staff ID', value: selectedStaff.staffId || '—' },
                 { label: 'Org Code', value: selectedStaff.orgCode },
-                { label: 'Responder Type', value: selectedStaff.responderType },
-                { label: 'Track', value: selectedStaff.track === 'volunteer' ? 'Independent Volunteer' : 'Organisation Personnel' },
-                { label: 'Verification', value: selectedStaff.isVerified ? '✅ Verified' : '⏳ Pending Verification' },
-                { label: 'Availability', value: selectedStaff.isAvailable ? '🟢 Available' : '🔴 Offline' },
+                { label: 'Type', value: selectedStaff.responderType },
+                { label: 'Track', value: selectedStaff.track === 'volunteer' ? 'Volunteer' : 'Organisation Personnel' },
+                { label: 'Verified', value: selectedStaff.isVerified ? '✅ Verified' : '⏳ Pending' },
+                { label: 'Status', value: selectedStaff.isAvailable ? '🟢 Available' : '🔴 Offline' },
               ].map((item) => (
                 <div key={item.label} className="flex justify-between items-center py-3 border-b border-white/[0.06] last:border-0">
                   <span className="text-white/30 text-sm">{item.label}</span>
@@ -137,8 +172,10 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
-            <button onClick={() => setSelectedStaff(null)}
-              className="w-full border border-white/10 text-white/40 py-3 rounded-xl text-sm hover:bg-white/[0.04] transition">
+            <button
+              onClick={() => setSelectedStaff(null)}
+              className="w-full border border-white/10 text-white/40 py-3 rounded-xl text-sm hover:bg-white/[0.04] transition"
+            >
               Close
             </button>
           </div>
@@ -154,7 +191,9 @@ export default function DashboardPage() {
                 {selectedEmergency.emergencyEmoji} {selectedEmergency.emergencyType}
               </h3>
               <span className={`text-xs px-3 py-1.5 rounded-full ${
-                selectedEmergency.status === 'accepted' ? 'bg-[#1a3a1a] text-[#00cc44]' : 'bg-[#3a0000] text-[#cc0000]'
+                selectedEmergency.status === 'accepted'
+                  ? 'bg-[#1a3a1a] text-[#00cc44]'
+                  : 'bg-[#3a0000] text-[#cc0000]'
               }`}>
                 {selectedEmergency.status === 'accepted' ? 'Responder assigned' : 'Awaiting response'}
               </span>
@@ -162,20 +201,30 @@ export default function DashboardPage() {
 
             <div className="space-y-1 mb-6">
               {[
-                { label: 'Description', value: selectedEmergency.description },
-                { label: 'People Affected', value: selectedEmergency.peopleAffected },
-                { label: 'Location', value: selectedEmergency.location ? `${selectedEmergency.location.latitude?.toFixed(4)}, ${selectedEmergency.location.longitude?.toFixed(4)}` : 'Not available' },
+                { label: 'Victim', value: selectedEmergency.userName || 'Unknown' },
+                { label: 'Description', value: selectedEmergency.description || 'No description' },
+                { label: 'People Affected', value: selectedEmergency.peopleAffected || '1' },
+                {
+                  label: 'Location',
+                  value: selectedEmergency.location
+                    ? `${selectedEmergency.location.latitude?.toFixed(4)}, ${selectedEmergency.location.longitude?.toFixed(4)}`
+                    : 'Not available'
+                },
                 { label: 'Status', value: selectedEmergency.status },
+                {
+                  label: 'Responder',
+                  value: selectedEmergency.responderName || selectedEmergency.responderOrgName || 'None yet'
+                },
               ].map((item) => (
                 <div key={item.label} className="flex justify-between items-start py-3 border-b border-white/[0.06] last:border-0 gap-4">
                   <span className="text-white/30 text-sm shrink-0">{item.label}</span>
-                  <span className="text-white text-sm text-right">{item.value || '—'}</span>
+                  <span className="text-white text-sm text-right">{item.value}</span>
                 </div>
               ))}
             </div>
 
             {selectedEmergency.location && (
-              <a
+              
                 href={`https://maps.google.com/?q=${selectedEmergency.location.latitude},${selectedEmergency.location.longitude}`}
                 target="_blank"
                 rel="noreferrer"
@@ -185,6 +234,7 @@ export default function DashboardPage() {
               </a>
             )}
 
+            {/* Only show accept/decline if still active and not already taken by someone */}
             {selectedEmergency.status === 'active' && (
               <div className="flex gap-3 mb-4">
                 <button
@@ -204,7 +254,17 @@ export default function DashboardPage() {
 
             {selectedEmergency.status === 'accepted' && selectedEmergency.responderOrgName === org?.orgName && (
               <div className="bg-[#1a3a1a] border border-[#00cc44] rounded-xl p-4 mb-4 text-center">
-                <p className="text-[#00cc44] text-sm font-semibold">✅ Your organisation is responding to this emergency</p>
+                <p className="text-[#00cc44] text-sm font-semibold">
+                  ✅ Your organisation is responding to this emergency
+                </p>
+              </div>
+            )}
+
+            {selectedEmergency.status === 'accepted' && selectedEmergency.responderOrgName !== org?.orgName && (
+              <div className="bg-[#1a2a3a] border border-[#4499ff] rounded-xl p-4 mb-4 text-center">
+                <p className="text-[#4499ff] text-sm font-semibold">
+                  ℹ️ {selectedEmergency.responderName || 'Another responder'} is handling this
+                </p>
               </div>
             )}
 
@@ -236,13 +296,20 @@ export default function DashboardPage() {
             { id: 'analytics', label: 'Analytics' },
             { id: 'settings', label: 'Settings' },
           ].map((item) => (
-            <button key={item.id} onClick={() => setActiveTab(item.id)}
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
               className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition text-left ${
-                activeTab === item.id ? 'bg-[#cc0000] text-white' : 'text-white/40 hover:bg-white/[0.04] hover:text-white'
-              }`}>
+                activeTab === item.id
+                  ? 'bg-[#cc0000] text-white'
+                  : 'text-white/40 hover:bg-white/[0.04] hover:text-white'
+              }`}
+            >
               <span>{item.label}</span>
               {(item as any).count > 0 && (
-                <span className={`text-xs px-2 py-0.5 rounded-full ${activeTab === item.id ? 'bg-white/20' : 'bg-[#cc0000]'} text-white`}>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${
+                  activeTab === item.id ? 'bg-white/20' : 'bg-[#cc0000]'
+                } text-white`}>
                   {(item as any).count}
                 </span>
               )}
@@ -275,7 +342,9 @@ export default function DashboardPage() {
         {activeTab === 'overview' && (
           <div>
             <div className="mb-8">
-              <h1 className="text-2xl font-black text-white mb-1">Welcome, {org?.orgName} 👋</h1>
+              <h1 className="text-2xl font-black text-white mb-1">
+                Welcome, {org?.orgName} 👋
+              </h1>
               <p className="text-white/30 text-sm">
                 Your organisation code:{' '}
                 <span className="text-[#cc0000] font-mono font-bold">{org?.orgCode}</span>
@@ -285,10 +354,10 @@ export default function DashboardPage() {
 
             <div className="grid grid-cols-4 gap-4 mb-8">
               {[
-                { label: 'Total Personnel', value: responders.length, sub: `${pendingResponders.length} pending verification` },
+                { label: 'Total Personnel', value: responders.length, sub: `${pendingResponders.length} pending` },
                 { label: 'Verified', value: verifiedResponders.length, sub: 'Ready to respond' },
-                { label: 'Active Emergencies', value: activeEmergencies.length, sub: 'Needs attention' },
-                { label: 'Resolved', value: resolvedEmergencies.length, sub: 'All time' },
+                { label: 'Active Emergencies', value: activeEmergencies.length, sub: 'Right now' },
+                { label: 'Our Responses', value: orgResponses.length, sub: 'All time' },
               ].map((stat) => (
                 <div key={stat.label} className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5">
                   <p className="text-3xl font-black text-white mb-1">{stat.value}</p>
@@ -303,9 +372,14 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className="w-2 h-2 bg-[#cc0000] rounded-full animate-pulse" />
-                    <h2 className="text-white font-bold">Live Emergencies — Action Required</h2>
+                    <h2 className="text-white font-bold">
+                      Live Emergencies — Action Required
+                    </h2>
                   </div>
-                  <button onClick={() => setActiveTab('emergencies')} className="text-[#cc0000] text-sm hover:underline">
+                  <button
+                    onClick={() => setActiveTab('emergencies')}
+                    className="text-[#cc0000] text-sm hover:underline"
+                  >
                     View all →
                   </button>
                 </div>
@@ -316,12 +390,18 @@ export default function DashboardPage() {
                     onClick={() => setSelectedEmergency(em)}
                   >
                     <div>
-                      <p className="text-white text-sm font-semibold">{em.emergencyEmoji} {em.emergencyType}</p>
-                      <p className="text-white/40 text-xs mt-1">{em.description?.slice(0, 50)}</p>
+                      <p className="text-white text-sm font-semibold">
+                        {em.emergencyEmoji} {em.emergencyType}
+                      </p>
+                      <p className="text-white/40 text-xs mt-1">
+                        Victim: {em.userName || 'Unknown'} • {em.peopleAffected || '1'} affected
+                      </p>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className={`text-xs px-3 py-1 rounded-full ${
-                        em.status === 'accepted' ? 'bg-[#1a3a1a] text-[#00cc44]' : 'bg-[#3a0000] text-[#cc0000]'
+                        em.status === 'accepted'
+                          ? 'bg-[#1a3a1a] text-[#00cc44]'
+                          : 'bg-[#3a0000] text-[#cc0000]'
                       }`}>
                         {em.status === 'accepted' ? 'Assigned' : 'Needs response'}
                       </span>
@@ -332,27 +412,43 @@ export default function DashboardPage() {
               </div>
             )}
 
+            {activeEmergencies.length === 0 && (
+              <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-8 mb-6 text-center">
+                <p className="text-white/20 text-sm">No active emergencies right now</p>
+                <p className="text-white/10 text-xs mt-1">New emergencies will appear here automatically</p>
+              </div>
+            )}
+
             <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-white font-bold">Your Personnel</h2>
-                <button onClick={() => setActiveTab('personnel')} className="text-[#cc0000] text-sm hover:underline">
+                <button
+                  onClick={() => setActiveTab('personnel')}
+                  className="text-[#cc0000] text-sm hover:underline"
+                >
                   View all →
                 </button>
               </div>
               {responders.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-white/20 text-sm mb-2">No personnel yet</p>
-                  <p className="text-white/10 text-xs">Share code <span className="text-[#cc0000] font-mono">{org?.orgCode}</span></p>
+                  <p className="text-white/10 text-xs">
+                    Share org code{' '}
+                    <span className="text-[#cc0000] font-mono">{org?.orgCode}</span>
+                  </p>
                 </div>
               ) : (
                 responders.slice(0, 5).map((r) => (
-                  <div key={r.id}
+                  <div
+                    key={r.id}
                     className="flex items-center justify-between py-3 border-b border-white/[0.04] last:border-0 cursor-pointer hover:bg-white/[0.02] rounded-xl px-2 transition"
                     onClick={() => setSelectedStaff(r)}
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-[#cc0000] rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">{r.name ? r.name[0] : 'R'}</span>
+                        <span className="text-white text-xs font-bold">
+                          {r.name ? r.name[0] : 'R'}
+                        </span>
                       </div>
                       <div>
                         <p className="text-white text-sm">{r.name}</p>
@@ -361,7 +457,11 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <div className={`w-2 h-2 rounded-full ${r.isAvailable ? 'bg-[#00cc44]' : 'bg-[#555]'}`} />
-                      <span className={`text-xs px-2 py-1 rounded-full ${r.isVerified ? 'bg-[#1a3a1a] text-[#00cc44]' : 'bg-[#2a1a00] text-[#cc6600]'}`}>
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        r.isVerified
+                          ? 'bg-[#1a3a1a] text-[#00cc44]'
+                          : 'bg-[#2a1a00] text-[#cc6600]'
+                      }`}>
                         {r.isVerified ? 'Verified' : 'Pending'}
                       </span>
                       <span className="text-white/20 text-lg">›</span>
@@ -378,14 +478,17 @@ export default function DashboardPage() {
           <div>
             <h1 className="text-2xl font-black text-white mb-2">Live Emergencies</h1>
             <p className="text-white/30 text-sm mb-8">
-              Click any emergency to view details and respond on behalf of {org?.orgName}
+              Click any emergency to view details and respond on behalf of{' '}
+              <span className="text-white">{org?.orgName}</span>
             </p>
 
             {activeEmergencies.length === 0 ? (
               <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-16 text-center">
                 <div className="w-3 h-3 bg-[#cc0000]/30 rounded-full mx-auto mb-4" />
                 <p className="text-white/20 text-sm">No active emergencies right now</p>
-                <p className="text-white/10 text-xs mt-2">Emergencies will appear here in real time</p>
+                <p className="text-white/10 text-xs mt-2">
+                  Emergencies will appear here in real time
+                </p>
               </div>
             ) : (
               <div className="flex flex-col gap-4">
@@ -397,8 +500,12 @@ export default function DashboardPage() {
                   >
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <h3 className="text-white font-bold text-lg">{em.emergencyEmoji} {em.emergencyType}</h3>
-                        <p className="text-white/40 text-sm mt-1">{em.description?.slice(0, 80)}</p>
+                        <h3 className="text-white font-bold text-lg">
+                          {em.emergencyEmoji} {em.emergencyType}
+                        </h3>
+                        <p className="text-white/40 text-sm mt-1">
+                          {em.description?.slice(0, 80)}
+                        </p>
                       </div>
                       <span className={`text-xs px-3 py-1.5 rounded-full shrink-0 ml-4 ${
                         em.status === 'accepted'
@@ -410,24 +517,32 @@ export default function DashboardPage() {
                         {em.status === 'accepted'
                           ? em.responderOrgName === org?.orgName
                             ? `✅ ${org?.orgName} responding`
-                            : `${em.responderOrgName || 'Responder'} assigned`
-                          : 'Awaiting response'}
+                            : `${em.responderName || 'Responder'} assigned`
+                          : 'Tap to respond'}
                       </span>
                     </div>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-4 gap-4">
                       <div>
-                        <p className="text-white/20 text-xs mb-1">People affected</p>
-                        <p className="text-white text-sm">{em.peopleAffected}</p>
+                        <p className="text-white/20 text-xs mb-1">Victim</p>
+                        <p className="text-white text-sm">{em.userName || 'Unknown'}</p>
+                      </div>
+                      <div>
+                        <p className="text-white/20 text-xs mb-1">People</p>
+                        <p className="text-white text-sm">{em.peopleAffected || '1'}</p>
                       </div>
                       <div>
                         <p className="text-white/20 text-xs mb-1">Location</p>
-                        <p className="text-white text-sm">
-                          {em.location ? `${em.location.latitude?.toFixed(3)}, ${em.location.longitude?.toFixed(3)}` : 'No location'}
+                        <p className="text-white text-xs">
+                          {em.location
+                            ? `${em.location.latitude?.toFixed(3)}, ${em.location.longitude?.toFixed(3)}`
+                            : 'No location'}
                         </p>
                       </div>
                       <div>
                         <p className="text-white/20 text-xs mb-1">Action</p>
-                        <p className="text-[#cc0000] text-sm font-semibold">Click to respond →</p>
+                        <p className="text-[#cc0000] text-sm font-semibold">
+                          {em.status === 'active' ? 'Respond →' : 'View →'}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -466,11 +581,17 @@ export default function DashboardPage() {
                     </thead>
                     <tbody>
                       {pendingResponders.map((r) => (
-                        <tr key={r.id} className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02] cursor-pointer" onClick={() => setSelectedStaff(r)}>
+                        <tr
+                          key={r.id}
+                          className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02] cursor-pointer"
+                          onClick={() => setSelectedStaff(r)}
+                        >
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 bg-[#cc0000] rounded-full flex items-center justify-center">
-                                <span className="text-white text-xs font-bold">{r.name ? r.name[0] : 'R'}</span>
+                                <span className="text-white text-xs font-bold">
+                                  {r.name ? r.name[0] : 'R'}
+                                </span>
                               </div>
                               <span className="text-white text-sm">{r.name}</span>
                             </div>
@@ -479,7 +600,9 @@ export default function DashboardPage() {
                           <td className="px-6 py-4 text-white/40 text-sm font-mono">{r.staffId || '—'}</td>
                           <td className="px-6 py-4 text-white/40 text-sm">{r.phone}</td>
                           <td className="px-6 py-4">
-                            <span className="bg-[#2a1a00] text-[#cc6600] text-xs px-3 py-1 rounded-full">Pending verification</span>
+                            <span className="bg-[#2a1a00] text-[#cc6600] text-xs px-3 py-1 rounded-full">
+                              Pending
+                            </span>
                           </td>
                           <td className="px-6 py-4 text-white/20 text-lg">›</td>
                         </tr>
@@ -491,7 +614,9 @@ export default function DashboardPage() {
             )}
 
             <div>
-              <h2 className="text-white font-bold mb-4">Verified Personnel ({verifiedResponders.length})</h2>
+              <h2 className="text-white font-bold mb-4">
+                Verified Personnel ({verifiedResponders.length})
+              </h2>
               <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-hidden">
                 <table className="w-full">
                   <thead>
@@ -503,14 +628,24 @@ export default function DashboardPage() {
                   </thead>
                   <tbody>
                     {verifiedResponders.length === 0 ? (
-                      <tr><td colSpan={6} className="px-6 py-12 text-center text-white/20 text-sm">No verified personnel yet</td></tr>
+                      <tr>
+                        <td colSpan={6} className="px-6 py-12 text-center text-white/20 text-sm">
+                          No verified personnel yet
+                        </td>
+                      </tr>
                     ) : (
                       verifiedResponders.map((r) => (
-                        <tr key={r.id} className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02] cursor-pointer" onClick={() => setSelectedStaff(r)}>
+                        <tr
+                          key={r.id}
+                          className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02] cursor-pointer"
+                          onClick={() => setSelectedStaff(r)}
+                        >
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 bg-[#cc0000] rounded-full flex items-center justify-center">
-                                <span className="text-white text-xs font-bold">{r.name ? r.name[0] : 'R'}</span>
+                                <span className="text-white text-xs font-bold">
+                                  {r.name ? r.name[0] : 'R'}
+                                </span>
                               </div>
                               <span className="text-white text-sm">{r.name}</span>
                             </div>
@@ -526,7 +661,9 @@ export default function DashboardPage() {
                             </div>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="bg-[#1a3a1a] text-[#00cc44] text-xs px-3 py-1 rounded-full">Verified</span>
+                            <span className="bg-[#1a3a1a] text-[#00cc44] text-xs px-3 py-1 rounded-full">
+                              Verified
+                            </span>
                           </td>
                           <td className="px-6 py-4 text-white/20 text-lg">›</td>
                         </tr>
@@ -543,14 +680,15 @@ export default function DashboardPage() {
         {activeTab === 'analytics' && (
           <div>
             <h1 className="text-2xl font-black text-white mb-2">Analytics</h1>
-            <p className="text-white/30 text-sm mb-8">Your organisation response performance</p>
-
+            <p className="text-white/30 text-sm mb-8">
+              {org?.orgName} response performance
+            </p>
             <div className="grid grid-cols-2 gap-6 mb-8">
               {[
-                { title: 'Total Personnel', value: responders.length, sub: 'Registered under your org' },
+                { title: 'Total Personnel', value: responders.length, sub: 'Registered' },
                 { title: 'Verified Responders', value: verifiedResponders.length, sub: 'Active on Siren' },
                 { title: 'Currently Available', value: verifiedResponders.filter((r: any) => r.isAvailable).length, sub: 'Online now' },
-                { title: 'Emergencies Responded', value: allEmergencies.filter(e => e.responderOrgName === org?.orgName).length, sub: 'By your organisation' },
+                { title: 'Our Emergency Responses', value: orgResponses.length, sub: 'All time' },
               ].map((item) => (
                 <div key={item.title} className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-8">
                   <p className="text-white/30 text-sm mb-2">{item.title}</p>
@@ -559,15 +697,14 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
-
             <div className="grid grid-cols-2 gap-6">
               <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-6">
-                <h2 className="text-white font-bold mb-4">Personnel Breakdown</h2>
+                <h2 className="text-white font-bold mb-4">Personnel Summary</h2>
                 {[
                   { label: 'Total Registered', value: responders.length },
                   { label: 'Verified', value: verifiedResponders.length },
-                  { label: 'Pending', value: pendingResponders.length },
-                  { label: 'Currently Online', value: verifiedResponders.filter((r: any) => r.isAvailable).length },
+                  { label: 'Pending Verification', value: pendingResponders.length },
+                  { label: 'Online Now', value: verifiedResponders.filter((r: any) => r.isAvailable).length },
                 ].map((item) => (
                   <div key={item.label} className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0">
                     <span className="text-white/60 text-sm">{item.label}</span>
@@ -575,14 +712,13 @@ export default function DashboardPage() {
                   </div>
                 ))}
               </div>
-
               <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-6">
-                <h2 className="text-white font-bold mb-4">Emergency Response</h2>
+                <h2 className="text-white font-bold mb-4">Emergency Summary</h2>
                 {[
-                  { label: 'Active Now', value: activeEmergencies.length },
-                  { label: 'Responded by Org', value: allEmergencies.filter(e => e.responderOrgName === org?.orgName).length },
+                  { label: 'Active Right Now', value: activeEmergencies.length },
+                  { label: 'We Responded To', value: orgResponses.length },
+                  { label: 'Resolved by Us', value: orgResponses.filter((e: any) => e.status === 'resolved').length },
                   { label: 'Total in System', value: allEmergencies.length },
-                  { label: 'Resolved', value: resolvedEmergencies.length },
                 ].map((item) => (
                   <div key={item.label} className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0">
                     <span className="text-white/60 text-sm">{item.label}</span>
@@ -614,7 +750,9 @@ export default function DashboardPage() {
               ].map((item) => (
                 <div key={item.label} className="flex justify-between items-center py-4 border-b border-white/[0.06] last:border-0">
                   <span className="text-white/30 text-sm">{item.label}</span>
-                  <span className={`text-sm font-semibold ${item.label === 'Org Code' ? 'text-[#cc0000] font-mono' : 'text-white'}`}>
+                  <span className={`text-sm font-semibold ${
+                    item.label === 'Org Code' ? 'text-[#cc0000] font-mono' : 'text-white'
+                  }`}>
                     {item.value || '—'}
                   </span>
                 </div>
