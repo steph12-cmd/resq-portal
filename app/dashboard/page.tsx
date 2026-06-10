@@ -33,7 +33,6 @@ export default function DashboardPage() {
     setOrg(orgData);
     fetchOrgData(orgData);
 
-    // Listen for ALL active emergencies in real time
     const unsubActive = onSnapshot(
       query(
         collection(db, 'emergencies'),
@@ -48,7 +47,6 @@ export default function DashboardPage() {
       }
     );
 
-    // Listen for all emergencies for analytics
     const unsubAll = onSnapshot(
       collection(db, 'emergencies'),
       (snap) => {
@@ -119,10 +117,44 @@ export default function DashboardPage() {
     }
   };
 
+  const handleResolveEmergency = async (em: any) => {
+    if (!confirm('Mark this emergency as resolved?')) return;
+    try {
+      await updateDoc(doc(db, 'emergencies', em.id), {
+        status: 'resolved',
+        resolvedAt: new Date(),
+        resolvedBy: org?.orgName,
+      });
+      setSelectedEmergency(null);
+      alert(`✅ Emergency marked as resolved by ${org?.orgName}`);
+    } catch (error) {
+      console.log('Error resolving:', error);
+      alert('Failed to resolve. Please try again.');
+    }
+  };
+
+  const handleCancelOrgResponse = async (em: any) => {
+    if (!confirm('Cancel your response? The emergency will go back to active.')) return;
+    try {
+      await updateDoc(doc(db, 'emergencies', em.id), {
+        status: 'active',
+        responderId: null,
+        responderName: null,
+        responderOrgId: null,
+        responderOrgName: null,
+        responderOrgType: null,
+        acceptedAt: null,
+      });
+      setSelectedEmergency(null);
+    } catch (error) {
+      console.log('Error cancelling response:', error);
+      alert('Failed to cancel response. Please try again.');
+    }
+  };
+
   const verifiedResponders = responders.filter(r => r.isVerified);
   const pendingResponders = responders.filter(r => !r.isVerified);
 
-  // Filter emergencies — don't show ones this org declined
   const activeEmergencies = emergencies.filter(e => {
     const declinedOrgs = e.declinedOrgs || [];
     return !declinedOrgs.includes(org?.id);
@@ -186,6 +218,7 @@ export default function DashboardPage() {
       {selectedEmergency && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6">
           <div className="bg-[#111] border border-white/10 rounded-2xl p-8 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-white font-black text-xl">
                 {selectedEmergency.emergencyEmoji} {selectedEmergency.emergencyType}
@@ -193,9 +226,15 @@ export default function DashboardPage() {
               <span className={`text-xs px-3 py-1.5 rounded-full ${
                 selectedEmergency.status === 'accepted'
                   ? 'bg-[#1a3a1a] text-[#00cc44]'
+                  : selectedEmergency.status === 'resolved'
+                  ? 'bg-[#1a2a3a] text-[#4499ff]'
                   : 'bg-[#3a0000] text-[#cc0000]'
               }`}>
-                {selectedEmergency.status === 'accepted' ? 'Responder assigned' : 'Awaiting response'}
+                {selectedEmergency.status === 'accepted'
+                  ? 'Responder assigned'
+                  : selectedEmergency.status === 'resolved'
+                  ? 'Resolved'
+                  : 'Awaiting response'}
               </span>
             </div>
 
@@ -208,15 +247,18 @@ export default function DashboardPage() {
                   label: 'Location',
                   value: selectedEmergency.location
                     ? `${selectedEmergency.location.latitude?.toFixed(4)}, ${selectedEmergency.location.longitude?.toFixed(4)}`
-                    : 'Not available'
+                    : 'Not available',
                 },
                 { label: 'Status', value: selectedEmergency.status },
                 {
                   label: 'Responder',
-                  value: selectedEmergency.responderName || selectedEmergency.responderOrgName || 'None yet'
+                  value: selectedEmergency.responderName || selectedEmergency.responderOrgName || 'None yet',
                 },
               ].map((item) => (
-                <div key={item.label} className="flex justify-between items-start py-3 border-b border-white/[0.06] last:border-0 gap-4">
+                <div
+                  key={item.label}
+                  className="flex justify-between items-start py-3 border-b border-white/[0.06] last:border-0 gap-4"
+                >
                   <span className="text-white/30 text-sm shrink-0">{item.label}</span>
                   <span className="text-white text-sm text-right">{item.value}</span>
                 </div>
@@ -234,7 +276,7 @@ export default function DashboardPage() {
               </a>
             )}
 
-            {/* Only show accept/decline if still active and not already taken by someone */}
+            {/* ACCEPT / DECLINE — active emergencies */}
             {selectedEmergency.status === 'active' && (
               <div className="flex gap-3 mb-4">
                 <button
@@ -252,18 +294,45 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {selectedEmergency.status === 'accepted' && selectedEmergency.responderOrgName === org?.orgName && (
-              <div className="bg-[#1a3a1a] border border-[#00cc44] rounded-xl p-4 mb-4 text-center">
-                <p className="text-[#00cc44] text-sm font-semibold">
-                  ✅ Your organisation is responding to this emergency
+            {/* RESOLVE + CANCEL — when this org accepted */}
+            {selectedEmergency.status === 'accepted' &&
+              selectedEmergency.responderOrgName === org?.orgName && (
+              <div className="space-y-3 mb-4">
+                <div className="bg-[#1a3a1a] border border-[#00cc44] rounded-xl p-3 text-center">
+                  <p className="text-[#00cc44] text-sm font-semibold">
+                    ✅ Your organisation is responding
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleResolveEmergency(selectedEmergency)}
+                  className="w-full bg-[#1a3a1a] border border-[#00cc44] text-[#00cc44] py-4 rounded-xl text-sm font-semibold hover:bg-[#00cc44] hover:text-white transition"
+                >
+                  ✅ Mark as Resolved
+                </button>
+                <button
+                  onClick={() => handleCancelOrgResponse(selectedEmergency)}
+                  className="w-full bg-[#1a1a1a] border border-white/10 text-white/40 py-3 rounded-xl text-sm hover:bg-white/[0.04] transition"
+                >
+                  Cancel Response
+                </button>
+              </div>
+            )}
+
+            {/* Another responder took it */}
+            {selectedEmergency.status === 'accepted' &&
+              selectedEmergency.responderOrgName !== org?.orgName && (
+              <div className="bg-[#1a2a3a] border border-[#4499ff] rounded-xl p-4 mb-4 text-center">
+                <p className="text-[#4499ff] text-sm font-semibold">
+                  ℹ️ {selectedEmergency.responderName || 'Another responder'} is handling this
                 </p>
               </div>
             )}
 
-            {selectedEmergency.status === 'accepted' && selectedEmergency.responderOrgName !== org?.orgName && (
+            {/* Already resolved */}
+            {selectedEmergency.status === 'resolved' && (
               <div className="bg-[#1a2a3a] border border-[#4499ff] rounded-xl p-4 mb-4 text-center">
                 <p className="text-[#4499ff] text-sm font-semibold">
-                  ℹ️ {selectedEmergency.responderName || 'Another responder'} is handling this
+                  ✅ This emergency has been resolved
                 </p>
               </div>
             )}
@@ -329,7 +398,10 @@ export default function DashboardPage() {
               <p className="text-white/30 text-xs">Admin</p>
             </div>
           </div>
-          <button onClick={handleLogout} className="text-white/20 text-xs hover:text-white/50 transition">
+          <button
+            onClick={handleLogout}
+            className="text-white/20 text-xs hover:text-white/50 transition"
+          >
             Logout
           </button>
         </div>
@@ -367,7 +439,7 @@ export default function DashboardPage() {
               ))}
             </div>
 
-            {activeEmergencies.length > 0 && (
+            {activeEmergencies.length > 0 ? (
               <div className="bg-white/[0.02] border border-[#cc0000]/20 rounded-2xl p-6 mb-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
@@ -410,12 +482,12 @@ export default function DashboardPage() {
                   </div>
                 ))}
               </div>
-            )}
-
-            {activeEmergencies.length === 0 && (
+            ) : (
               <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-8 mb-6 text-center">
                 <p className="text-white/20 text-sm">No active emergencies right now</p>
-                <p className="text-white/10 text-xs mt-1">New emergencies will appear here automatically</p>
+                <p className="text-white/10 text-xs mt-1">
+                  New emergencies will appear here automatically
+                </p>
               </div>
             )}
 
@@ -568,14 +640,19 @@ export default function DashboardPage() {
               <div className="mb-8">
                 <h2 className="text-white font-bold mb-4 flex items-center gap-2">
                   <div className="w-2 h-2 bg-[#cc6600] rounded-full" />
-                  Pending Siren Verification ({pendingResponders.length})
+                  Pending Verification ({pendingResponders.length})
                 </h2>
                 <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-hidden">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-white/[0.06]">
                         {['Name', 'Type', 'Staff ID', 'Phone', 'Status', ''].map((h) => (
-                          <th key={h} className="text-left text-white/30 text-xs font-semibold px-6 py-4 uppercase tracking-widest">{h}</th>
+                          <th
+                            key={h}
+                            className="text-left text-white/30 text-xs font-semibold px-6 py-4 uppercase tracking-widest"
+                          >
+                            {h}
+                          </th>
                         ))}
                       </tr>
                     </thead>
@@ -622,7 +699,12 @@ export default function DashboardPage() {
                   <thead>
                     <tr className="border-b border-white/[0.06]">
                       {['Name', 'Type', 'Staff ID', 'Availability', 'Status', ''].map((h) => (
-                        <th key={h} className="text-left text-white/30 text-xs font-semibold px-6 py-4 uppercase tracking-widest">{h}</th>
+                        <th
+                          key={h}
+                          className="text-left text-white/30 text-xs font-semibold px-6 py-4 uppercase tracking-widest"
+                        >
+                          {h}
+                        </th>
                       ))}
                     </tr>
                   </thead>
