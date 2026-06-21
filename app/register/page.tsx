@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { db } from '../lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import bcrypt from 'bcryptjs';
 import { NIGERIA_STATES_LGAS } from '../lib/nigeriaLocations';
 
 const ORG_TYPES = ['Fire Service', 'Medical / Hospital', 'Police', 'Private Security', 'Ambulance Service', 'NGO / Volunteer', 'Other'];
@@ -31,8 +32,18 @@ export default function RegisterPage() {
     }
     setLoading(true);
     try {
+      const hashedPassword = await bcrypt.hash(form.password, 10);
+
       await addDoc(collection(db, 'organisations'), {
-        ...form,
+        orgName: form.orgName,
+        rcNumber: form.rcNumber,
+        contactPerson: form.contactPerson,
+        phone: form.phone,
+        email: form.email,
+        password: hashedPassword,
+        state: form.state,
+        lga: form.lga,
+        address: form.address,
         orgType,
         status: 'pending',
         createdAt: serverTimestamp(),

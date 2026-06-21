@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { db } from '../lib/firebase';
 import { collection, getDocs, doc, updateDoc, onSnapshot } from 'firebase/firestore';
 
-const ADMIN_PASSWORD = 'siren_admin_2025';
+
 
 export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false);

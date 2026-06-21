@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { db } from '../lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
+import bcrypt from 'bcryptjs';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,15 +25,26 @@ export default function LoginPage() {
       const q = query(
         collection(db, 'organisations'),
         where('email', '==', email),
-        where('password', '==', password),
         where('status', '==', 'approved')
       );
       const snap = await getDocs(q);
+
       if (snap.empty) {
         setError('Invalid credentials or organisation not yet approved');
         return;
       }
-      const org = { id: snap.docs[0].id, ...snap.docs[0].data() };
+
+      const orgDoc = snap.docs[0];
+      const orgData = orgDoc.data();
+
+      const passwordMatches = await bcrypt.compare(password, orgData.password);
+      if (!passwordMatches) {
+        setError('Invalid credentials or organisation not yet approved');
+        return;
+      }
+
+      const org = { id: orgDoc.id, ...orgData };
+      delete (org as any).password; // never keep the hash in localStorage either
       localStorage.setItem('sirenOrg', JSON.stringify(org));
       router.push('/dashboard');
     } catch (error) {
@@ -80,6 +92,7 @@ export default function LoginPage() {
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                 placeholder="Enter your password"
                 className="flex-1 px-4 py-4 text-white placeholder-white/20 bg-transparent focus:outline-none text-sm"
               />
