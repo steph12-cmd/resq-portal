@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { db } from '../lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { NIGERIA_STATES_LGAS } from '../lib/nigeriaLocations';
 
 const ORG_TYPES = ['Fire Service', 'Medical / Hospital', 'Police', 'Private Security', 'Ambulance Service', 'NGO / Volunteer', 'Other'];
 
@@ -12,6 +13,7 @@ export default function RegisterPage() {
   const [step, setStep] = useState(1);
   const [orgType, setOrgType] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({
     orgName: '', rcNumber: '', contactPerson: '',
     phone: '', email: '', password: '',
@@ -23,6 +25,10 @@ export default function RegisterPage() {
   };
 
   const handleSubmit = async () => {
+    if (form.password.length < 8) {
+      alert('Password must be at least 8 characters');
+      return;
+    }
     setLoading(true);
     try {
       await addDoc(collection(db, 'organisations'), {
@@ -107,13 +113,11 @@ export default function RegisterPage() {
         {step === 2 && (
           <div className="flex flex-col gap-5">
             <h2 className="text-white font-bold text-lg">Contact & Location</h2>
+
             {[
               { name: 'contactPerson', label: 'Contact Person', placeholder: 'e.g. Emeka Okafor' },
               { name: 'phone', label: 'Phone Number', placeholder: 'e.g. 08012345678' },
               { name: 'email', label: 'Email Address', placeholder: 'e.g. info@org.com' },
-              { name: 'state', label: 'State', placeholder: 'e.g. Lagos' },
-              { name: 'lga', label: 'LGA', placeholder: 'e.g. Ikeja' },
-              { name: 'address', label: 'Official Address', placeholder: 'e.g. 10 Broad Street' },
             ].map((field) => (
               <div key={field.name}>
                 <label className="text-white/40 text-xs font-semibold mb-2 block uppercase tracking-widest">{field.label}</label>
@@ -122,6 +126,45 @@ export default function RegisterPage() {
                   className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-4 text-white placeholder-white/20 focus:outline-none focus:border-[#cc0000]/50 text-sm" />
               </div>
             ))}
+
+            <div>
+              <label className="text-white/40 text-xs font-semibold mb-2 block uppercase tracking-widest">State</label>
+              <select
+                name="state"
+                value={form.state}
+                onChange={(e) => setForm({ ...form, state: e.target.value, lga: '' })}
+                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-4 text-white text-sm focus:outline-none focus:border-[#cc0000]/50"
+              >
+                <option value="" className="bg-[#111]">Select state</option>
+                {Object.keys(NIGERIA_STATES_LGAS).sort().map((s) => (
+                  <option key={s} value={s} className="bg-[#111]">{s}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="text-white/40 text-xs font-semibold mb-2 block uppercase tracking-widest">LGA</label>
+              <select
+                name="lga"
+                value={form.lga}
+                onChange={(e) => setForm({ ...form, lga: e.target.value })}
+                disabled={!form.state}
+                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-4 text-white text-sm focus:outline-none focus:border-[#cc0000]/50 disabled:opacity-40"
+              >
+                <option value="" className="bg-[#111]">{form.state ? 'Select LGA' : 'Select state first'}</option>
+                {(NIGERIA_STATES_LGAS[form.state] || []).map((l) => (
+                  <option key={l} value={l} className="bg-[#111]">{l}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="text-white/40 text-xs font-semibold mb-2 block uppercase tracking-widest">Official Address</label>
+              <input name="address" value={form.address} onChange={handleChange}
+                placeholder="e.g. 10 Broad Street"
+                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-4 text-white placeholder-white/20 focus:outline-none focus:border-[#cc0000]/50 text-sm" />
+            </div>
+
             <div className="flex gap-3">
               <button onClick={() => setStep(1)} className="flex-1 border border-white/[0.08] text-white/40 py-4 rounded-xl text-sm hover:bg-white/[0.04] transition">← Back</button>
               <button onClick={() => setStep(3)} className="flex-[2] bg-[#cc0000] text-white py-4 rounded-xl font-semibold hover:bg-[#aa0000] transition">Continue →</button>
@@ -132,12 +175,28 @@ export default function RegisterPage() {
         {step === 3 && (
           <div className="flex flex-col gap-5">
             <h2 className="text-white font-bold text-lg">Create Admin Account</h2>
+
             <div>
               <label className="text-white/40 text-xs font-semibold mb-2 block uppercase tracking-widest">Password</label>
-              <input name="password" type="password" value={form.password} onChange={handleChange}
-                placeholder="Create a strong password"
-                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-4 text-white placeholder-white/20 focus:outline-none focus:border-[#cc0000]/50 text-sm" />
+              <div className="relative">
+                <input
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={form.password}
+                  onChange={handleChange}
+                  placeholder="Create a strong password (min. 8 characters)"
+                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-4 pr-12 text-white placeholder-white/20 focus:outline-none focus:border-[#cc0000]/50 text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white text-sm"
+                >
+                  {showPassword ? '🙈' : '👁️'}
+                </button>
+              </div>
             </div>
+
             <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-5">
               <p className="text-white/40 text-xs font-semibold uppercase tracking-widest mb-3">Summary</p>
               {[
@@ -146,6 +205,7 @@ export default function RegisterPage() {
                 { label: 'Contact', value: form.contactPerson },
                 { label: 'Email', value: form.email },
                 { label: 'State', value: form.state },
+                { label: 'LGA', value: form.lga },
               ].map((item) => (
                 <div key={item.label} className="flex justify-between py-2 border-b border-white/[0.04] last:border-0">
                   <span className="text-white/30 text-sm">{item.label}</span>
@@ -153,11 +213,13 @@ export default function RegisterPage() {
                 </div>
               ))}
             </div>
+
             <div className="bg-white/[0.02] border border-[#cc0000]/20 rounded-xl p-4">
               <p className="text-white/40 text-xs leading-relaxed">
                 After submission your organisation will be reviewed by the Siren team within 24-48 hours. You will receive an email once verified.
               </p>
             </div>
+
             <div className="flex gap-3">
               <button onClick={() => setStep(2)} className="flex-1 border border-white/[0.08] text-white/40 py-4 rounded-xl text-sm hover:bg-white/[0.04] transition">← Back</button>
               <button onClick={handleSubmit} disabled={loading}

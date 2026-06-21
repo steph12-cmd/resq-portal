@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '../lib/firebase';
 import {
@@ -10,7 +10,12 @@ import {
   getDocs,
   doc,
   updateDoc,
+  addDoc,
+  orderBy,
+  serverTimestamp,
 } from 'firebase/firestore';
+
+const MAPS_EMBED_KEY = 'AIzaSyDSApdedmKyI31lmFzL1U1kG9WoOUdmLps';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -22,6 +27,11 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [selectedStaff, setSelectedStaff] = useState<any>(null);
   const [selectedEmergency, setSelectedEmergency] = useState<any>(null);
+  const [showChat, setShowChat] = useState(false);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [chatText, setChatText] = useState('');
+  const [sharingLocation, setSharingLocation] = useState(false);
+  const watchIdRef = useRef<number | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem('sirenOrg');
@@ -42,26 +52,44 @@ export default function DashboardPage() {
         const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         setEmergencies(list);
       },
-      (error) => {
-        console.log('Emergency listener error:', error);
-      }
+      (error) => console.log('Emergency listener error:', error)
     );
 
     const unsubAll = onSnapshot(
       collection(db, 'emergencies'),
-      (snap) => {
-        setAllEmergencies(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      },
-      (error) => {
-        console.log('All emergencies listener error:', error);
-      }
+      (snap) => setAllEmergencies(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+      (error) => console.log('All emergencies listener error:', error)
     );
 
     return () => {
       unsubActive();
       unsubAll();
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+      }
     };
   }, []);
+
+  // Keeps the open modal in sync with live updates without needing to reopen it
+  useEffect(() => {
+    if (!selectedEmergency) return;
+    const fresh = emergencies.find(e => e.id === selectedEmergency.id)
+      || allEmergencies.find(e => e.id === selectedEmergency.id);
+    if (fresh) setSelectedEmergency(fresh);
+  }, [emergencies, allEmergencies]);
+
+  // Chat listener — only when chat panel is open for the selected emergency
+  useEffect(() => {
+    if (!showChat || !selectedEmergency) return;
+    const q = query(
+      collection(db, 'emergencies', selectedEmergency.id, 'messages'),
+      orderBy('timestamp', 'asc')
+    );
+    const unsub = onSnapshot(q, (snap) => {
+      setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    return () => unsub();
+  }, [showChat, selectedEmergency?.id]);
 
   const fetchOrgData = async (orgData: any) => {
     try {
@@ -80,6 +108,9 @@ export default function DashboardPage() {
   };
 
   const handleLogout = () => {
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+    }
     localStorage.removeItem('sirenOrg');
     router.replace('/login');
   };
@@ -119,13 +150,16 @@ export default function DashboardPage() {
 
   const handleResolveEmergency = async (em: any) => {
     if (!confirm('Mark this emergency as resolved?')) return;
+    stopSharingLocation();
     try {
       await updateDoc(doc(db, 'emergencies', em.id), {
         status: 'resolved',
         resolvedAt: new Date(),
         resolvedBy: org?.orgName,
+        responderLocation: null,
       });
       setSelectedEmergency(null);
+      setShowChat(false);
       alert(`✅ Emergency marked as resolved by ${org?.orgName}`);
     } catch (error) {
       console.log('Error resolving:', error);
@@ -135,6 +169,7 @@ export default function DashboardPage() {
 
   const handleCancelOrgResponse = async (em: any) => {
     if (!confirm('Cancel your response? The emergency will go back to active.')) return;
+    stopSharingLocation();
     try {
       await updateDoc(doc(db, 'emergencies', em.id), {
         status: 'active',
@@ -143,13 +178,78 @@ export default function DashboardPage() {
         responderOrgId: null,
         responderOrgName: null,
         responderOrgType: null,
+        responderLocation: null,
         acceptedAt: null,
       });
       setSelectedEmergency(null);
+      setShowChat(false);
     } catch (error) {
       console.log('Error cancelling response:', error);
       alert('Failed to cancel response. Please try again.');
     }
+  };
+
+  // ---- Live location sharing (writes to the SAME field the mobile map already reads) ----
+  const startSharingLocation = () => {
+    if (!selectedEmergency || !navigator.geolocation) {
+      alert('Location sharing is not supported in this browser');
+      return;
+    }
+    const id = navigator.geolocation.watchPosition(
+      async (pos) => {
+        try {
+          await updateDoc(doc(db, 'emergencies', selectedEmergency.id), {
+            responderLocation: {
+              latitude: pos.coords.latitude,
+              longitude: pos.coords.longitude,
+            },
+          });
+        } catch (error) {
+          console.log('Error updating location:', error);
+        }
+      },
+      (error) => {
+        console.log('Geolocation error:', error);
+        alert('Could not access your location. Please allow location permission.');
+        setSharingLocation(false);
+      },
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+    );
+    watchIdRef.current = id;
+    setSharingLocation(true);
+  };
+
+  const stopSharingLocation = () => {
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+    setSharingLocation(false);
+  };
+
+  // ---- Chat ----
+  const handleSendChat = async () => {
+    if (!chatText.trim() || !selectedEmergency || !org) return;
+    const text = chatText.trim();
+    setChatText('');
+    try {
+      await addDoc(collection(db, 'emergencies', selectedEmergency.id, 'messages'), {
+        senderId: `org_${org.id}`,
+        senderName: org.orgName,
+        senderRole: 'organisation',
+        text,
+        timestamp: serverTimestamp(),
+        readBy: [`org_${org.id}`],
+      });
+    } catch (error) {
+      console.log('Error sending message:', error);
+    }
+  };
+
+  const formatChatTime = (timestamp: any) => {
+    if (!timestamp) return '';
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   const verifiedResponders = responders.filter(r => r.isVerified);
@@ -160,8 +260,9 @@ export default function DashboardPage() {
     return !declinedOrgs.includes(org?.id);
   });
 
-  const resolvedEmergencies = allEmergencies.filter(e => e.status === 'resolved');
   const orgResponses = allEmergencies.filter(e => e.responderOrgName === org?.orgName);
+  const isRespondingOrg = selectedEmergency?.responderOrgName === org?.orgName
+    && selectedEmergency?.status === 'accepted';
 
   if (loading) return (
     <div className="min-h-screen bg-[#050505] flex items-center justify-center">
@@ -216,8 +317,8 @@ export default function DashboardPage() {
 
       {/* Emergency Detail Modal */}
       {selectedEmergency && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6">
-          <div className="bg-[#111] border border-white/10 rounded-2xl p-8 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-6 py-6">
+          <div className="bg-[#111] border border-white/10 rounded-2xl p-8 w-full max-w-lg max-h-[92vh] overflow-y-auto">
 
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-white font-black text-xl">
@@ -265,18 +366,34 @@ export default function DashboardPage() {
               ))}
             </div>
 
+            {/* Live mini-map — shows victim pin, and route if org is sharing location */}
+            {selectedEmergency.location && (
+              <div className="rounded-xl overflow-hidden mb-4 border border-white/10">
+                <iframe
+                  width="100%"
+                  height="220"
+                  style={{ border: 0 }}
+                  loading="lazy"
+                  src={
+                    selectedEmergency.responderLocation
+                      ? `https://www.google.com/maps/embed/v1/directions?key=${MAPS_EMBED_KEY}&origin=${selectedEmergency.responderLocation.latitude},${selectedEmergency.responderLocation.longitude}&destination=${selectedEmergency.location.latitude},${selectedEmergency.location.longitude}`
+                      : `https://www.google.com/maps/embed/v1/view?key=${MAPS_EMBED_KEY}&center=${selectedEmergency.location.latitude},${selectedEmergency.location.longitude}&zoom=15`
+                  }
+                />
+              </div>
+            )}
+
             {selectedEmergency.location && (
               <a
-                href={`https://maps.google.com/?q=${selectedEmergency.location.latitude},${selectedEmergency.location.longitude}`}
                 target="_blank"
                 rel="noreferrer"
                 className="block w-full bg-white/[0.04] border border-white/[0.08] text-white text-center py-3 rounded-xl text-sm mb-4 hover:bg-white/[0.08] transition"
               >
-                🗺️ View on Google Maps
+                🗺️ Navigate (Open in Google Maps)
               </a>
             )}
 
-            {/* ACCEPT / DECLINE — active emergencies */}
+            {/* ACCEPT / DECLINE */}
             {selectedEmergency.status === 'active' && (
               <div className="flex gap-3 mb-4">
                 <button
@@ -294,21 +411,86 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* RESOLVE + CANCEL — when this org accepted */}
-            {selectedEmergency.status === 'accepted' &&
-              selectedEmergency.responderOrgName === org?.orgName && (
+            {/* RESPONDING — chat, location sharing, resolve, cancel */}
+            {isRespondingOrg && (
               <div className="space-y-3 mb-4">
                 <div className="bg-[#1a3a1a] border border-[#00cc44] rounded-xl p-3 text-center">
                   <p className="text-[#00cc44] text-sm font-semibold">
                     ✅ Your organisation is responding
                   </p>
                 </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowChat(!showChat)}
+                    className="flex-1 bg-[#0d1a2a] border border-[#4499ff] text-[#4499ff] py-3 rounded-xl text-sm font-semibold hover:bg-[#4499ff] hover:text-white transition"
+                  >
+                    💬 {showChat ? 'Hide Chat' : 'Message Victim'}
+                  </button>
+                  <button
+                    onClick={() => sharingLocation ? stopSharingLocation() : startSharingLocation()}
+                    className={`flex-1 py-3 rounded-xl text-sm font-semibold border transition ${
+                      sharingLocation
+                        ? 'bg-[#cc0000] border-[#cc0000] text-white'
+                        : 'bg-[#1a1a1a] border-white/20 text-white/60 hover:bg-white/[0.06]'
+                    }`}
+                  >
+                    {sharingLocation ? '📡 Sharing Location' : '📍 Share My Location'}
+                  </button>
+                </div>
+
+                {/* Chat panel */}
+                {showChat && (
+                  <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4">
+                    <div className="max-h-64 overflow-y-auto flex flex-col gap-2 mb-3">
+                      {messages.length === 0 ? (
+                        <p className="text-white/20 text-xs text-center py-6">No messages yet</p>
+                      ) : (
+                        messages.map((msg) => {
+                          const isMe = msg.senderRole === 'organisation';
+                          return (
+                            <div
+                              key={msg.id}
+                              className={`max-w-[80%] rounded-xl px-3 py-2 ${
+                                isMe
+                                  ? 'bg-[#cc0000] text-white self-end rounded-br-sm'
+                                  : 'bg-[#1a1a1a] text-white/80 self-start rounded-bl-sm'
+                              }`}
+                            >
+                              <p className="text-sm">{msg.text}</p>
+                              <p className={`text-[10px] mt-1 ${isMe ? 'text-white/60' : 'text-white/30'}`}>
+                                {formatChatTime(msg.timestamp)}
+                              </p>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        value={chatText}
+                        onChange={(e) => setChatText(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSendChat()}
+                        placeholder="Type a message..."
+                        className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2 text-white text-sm placeholder-white/20 focus:outline-none focus:border-[#cc0000]/50"
+                      />
+                      <button
+                        onClick={handleSendChat}
+                        className="bg-[#cc0000] text-white px-4 rounded-xl text-sm font-semibold hover:bg-[#aa0000] transition"
+                      >
+                        Send
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 <button
                   onClick={() => handleResolveEmergency(selectedEmergency)}
                   className="w-full bg-[#1a3a1a] border border-[#00cc44] text-[#00cc44] py-4 rounded-xl text-sm font-semibold hover:bg-[#00cc44] hover:text-white transition"
                 >
                   ✅ Mark as Resolved
                 </button>
+
                 <button
                   onClick={() => handleCancelOrgResponse(selectedEmergency)}
                   className="w-full bg-[#1a1a1a] border border-white/10 text-white/40 py-3 rounded-xl text-sm hover:bg-white/[0.04] transition"
@@ -318,7 +500,6 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Another responder took it */}
             {selectedEmergency.status === 'accepted' &&
               selectedEmergency.responderOrgName !== org?.orgName && (
               <div className="bg-[#1a2a3a] border border-[#4499ff] rounded-xl p-4 mb-4 text-center">
@@ -328,7 +509,6 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Already resolved */}
             {selectedEmergency.status === 'resolved' && (
               <div className="bg-[#1a2a3a] border border-[#4499ff] rounded-xl p-4 mb-4 text-center">
                 <p className="text-[#4499ff] text-sm font-semibold">
@@ -338,7 +518,11 @@ export default function DashboardPage() {
             )}
 
             <button
-              onClick={() => setSelectedEmergency(null)}
+              onClick={() => {
+                stopSharingLocation();
+                setShowChat(false);
+                setSelectedEmergency(null);
+              }}
               className="w-full border border-white/10 text-white/40 py-3 rounded-xl text-sm hover:bg-white/[0.04] transition"
             >
               Close
@@ -398,10 +582,7 @@ export default function DashboardPage() {
               <p className="text-white/30 text-xs">Admin</p>
             </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="text-white/20 text-xs hover:text-white/50 transition"
-          >
+          <button onClick={handleLogout} className="text-white/20 text-xs hover:text-white/50 transition">
             Logout
           </button>
         </div>
@@ -550,7 +731,7 @@ export default function DashboardPage() {
           <div>
             <h1 className="text-2xl font-black text-white mb-2">Live Emergencies</h1>
             <p className="text-white/30 text-sm mb-8">
-              Click any emergency to view details and respond on behalf of{' '}
+              Click any emergency to view details, chat, share location, and respond on behalf of{' '}
               <span className="text-white">{org?.orgName}</span>
             </p>
 
@@ -640,19 +821,14 @@ export default function DashboardPage() {
               <div className="mb-8">
                 <h2 className="text-white font-bold mb-4 flex items-center gap-2">
                   <div className="w-2 h-2 bg-[#cc6600] rounded-full" />
-                  Pending Verification ({pendingResponders.length})
+                  Pending Siren Verification ({pendingResponders.length})
                 </h2>
                 <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-hidden">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-white/[0.06]">
                         {['Name', 'Type', 'Staff ID', 'Phone', 'Status', ''].map((h) => (
-                          <th
-                            key={h}
-                            className="text-left text-white/30 text-xs font-semibold px-6 py-4 uppercase tracking-widest"
-                          >
-                            {h}
-                          </th>
+                          <th key={h} className="text-left text-white/30 text-xs font-semibold px-6 py-4 uppercase tracking-widest">{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -699,12 +875,7 @@ export default function DashboardPage() {
                   <thead>
                     <tr className="border-b border-white/[0.06]">
                       {['Name', 'Type', 'Staff ID', 'Availability', 'Status', ''].map((h) => (
-                        <th
-                          key={h}
-                          className="text-left text-white/30 text-xs font-semibold px-6 py-4 uppercase tracking-widest"
-                        >
-                          {h}
-                        </th>
+                        <th key={h} className="text-left text-white/30 text-xs font-semibold px-6 py-4 uppercase tracking-widest">{h}</th>
                       ))}
                     </tr>
                   </thead>

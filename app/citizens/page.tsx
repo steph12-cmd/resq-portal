@@ -77,7 +77,7 @@ export default function CitizenPage() {
               {
                 step: '02',
                 title: 'Select Emergency',
-                desc: 'Choose from 24 emergency types. Optionally add details to help responders prepare before they arrive.',
+                desc: 'Choose from 26+ emergency types. Optionally add details to help responders prepare before they arrive.',
               },
               {
                 step: '03',
