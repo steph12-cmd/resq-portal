@@ -27,6 +27,13 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <script
+          src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_MAPS_JS_KEY}`}
+          async
+          defer
+        />
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
