@@ -24,6 +24,11 @@ export default function DashboardPage() {
   const [responders, setResponders] = useState<any[]>([]);
   const [emergencies, setEmergencies] = useState<any[]>([]);
   const [allEmergencies, setAllEmergencies] = useState<any[]>([]);
+    const activeEmergencies = emergencies.filter(e => {
+    const declinedOrgs = e.declinedOrgs || [];
+    return !declinedOrgs.includes(org?.id);
+  });
+
   const [loading, setLoading] = useState(true);
   const [selectedStaff, setSelectedStaff] = useState<any>(null);
   const [selectedEmergency, setSelectedEmergency] = useState<any>(null);
@@ -32,6 +37,11 @@ export default function DashboardPage() {
   const [chatText, setChatText] = useState('');
   const [sharingLocation, setSharingLocation] = useState(false);
   const watchIdRef = useRef<number | null>(null);
+
+  const [emergencyView, setEmergencyView] = useState<'list' | 'heatmap'>('list');
+  const mapRef = useRef<any>(null);
+  const mapInstanceRef = useRef<any>(null);
+  const circlesRef = useRef<any[]>([]);
 
   useEffect(() => {
     const stored = localStorage.getItem('sirenOrg');
@@ -90,6 +100,95 @@ export default function DashboardPage() {
     });
     return () => unsub();
   }, [showChat, selectedEmergency?.id]);
+
+  // Heatmap renderer — draws/updates clustered circles whenever emergencies
+  // change or the view is toggled to heatmap
+  useEffect(() => {
+    if (emergencyView !== 'heatmap' || !mapRef.current) return;
+    // @ts-ignore
+    if (typeof window === 'undefined' || !window.google) return;
+
+    // @ts-ignore
+    const google = window.google;
+
+    if (!mapInstanceRef.current) {
+      mapInstanceRef.current = new google.maps.Map(mapRef.current, {
+        center: activeEmergencies[0]?.location
+          ? {
+              lat: activeEmergencies[0].location.latitude,
+              lng: activeEmergencies[0].location.longitude,
+            }
+          : { lat: 6.5244, lng: 3.3792 },
+        zoom: 12,
+        styles: [
+          { elementType: 'geometry', stylers: [{ color: '#1a1a1a' }] },
+          { elementType: 'labels.text.stroke', stylers: [{ color: '#1a1a1a' }] },
+          { elementType: 'labels.text.fill', stylers: [{ color: '#888888' }] },
+          { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#2a2a2a' }] },
+          { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0d0d0d' }] },
+          { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+        ],
+      });
+    }
+
+    // Clear old circles
+    circlesRef.current.forEach((c) => c.setMap(null));
+    circlesRef.current = [];
+
+    // Cluster nearby emergencies (within ~500m)
+    const CLUSTER_KM = 0.5;
+    const haversine = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+      const R = 6371;
+      const dLat = (lat2 - lat1) * (Math.PI / 180);
+      const dLon = (lon2 - lon1) * (Math.PI / 180);
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) *
+        Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    };
+
+    const withLocation = activeEmergencies.filter((e: any) => e.location);
+    const used = new Set<string>();
+    const clusters: any[] = [];
+
+    withLocation.forEach((em: any) => {
+      if (used.has(em.id)) return;
+      const group = [em];
+      used.add(em.id);
+      withLocation.forEach((other: any) => {
+        if (used.has(other.id)) return;
+        if (haversine(em.location.latitude, em.location.longitude, other.location.latitude, other.location.longitude) <= CLUSTER_KM) {
+          group.push(other);
+          used.add(other.id);
+        }
+      });
+      const avgLat = group.reduce((s, e) => s + e.location.latitude, 0) / group.length;
+      const avgLng = group.reduce((s, e) => s + e.location.longitude, 0) / group.length;
+      clusters.push({ center: { lat: avgLat, lng: avgLng }, emergencies: group });
+    });
+
+    clusters.forEach((cluster) => {
+      const count = cluster.emergencies.length;
+      const color = count >= 4 ? '#cc0000' : count >= 2 ? '#ff6600' : '#ffcc00';
+      const radius = 300 + (count - 1) * 200;
+
+      const circle = new google.maps.Circle({
+        strokeColor: color,
+        strokeOpacity: 0.8,
+        strokeWeight: 1,
+        fillColor: color,
+        fillOpacity: 0.25,
+        map: mapInstanceRef.current,
+        center: cluster.center,
+        radius,
+      });
+
+      circle.addListener('click', () => {
+        setSelectedEmergency(cluster.emergencies[0]);
+      });
+
+      circlesRef.current.push(circle);
+    });
+  }, [emergencyView, activeEmergencies]);
 
   const fetchOrgData = async (orgData: any) => {
     try {
@@ -255,10 +354,6 @@ export default function DashboardPage() {
   const verifiedResponders = responders.filter(r => r.isVerified);
   const pendingResponders = responders.filter(r => !r.isVerified);
 
-  const activeEmergencies = emergencies.filter(e => {
-    const declinedOrgs = e.declinedOrgs || [];
-    return !declinedOrgs.includes(org?.id);
-  });
 
   const orgResponses = allEmergencies.filter(e => e.responderOrgName === org?.orgName);
   const isRespondingOrg = selectedEmergency?.responderOrgName === org?.orgName
@@ -384,11 +479,12 @@ export default function DashboardPage() {
             )}
 
             {selectedEmergency.location && (
-              <a
+              <a>
+                href={`https://www.google.com/maps/dir/?api=1&destination=${selectedEmergency.location.latitude},${selectedEmergency.location.longitude}`}
                 target="_blank"
                 rel="noreferrer"
                 className="block w-full bg-white/[0.04] border border-white/[0.08] text-white text-center py-3 rounded-xl text-sm mb-4 hover:bg-white/[0.08] transition"
-              >
+              
                 🗺️ Navigate (Open in Google Maps)
               </a>
             )}
@@ -729,13 +825,53 @@ export default function DashboardPage() {
         {/* LIVE EMERGENCIES */}
         {activeTab === 'emergencies' && (
           <div>
-            <h1 className="text-2xl font-black text-white mb-2">Live Emergencies</h1>
-            <p className="text-white/30 text-sm mb-8">
-              Click any emergency to view details, chat, share location, and respond on behalf of{' '}
-              <span className="text-white">{org?.orgName}</span>
-            </p>
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <h1 className="text-2xl font-black text-white mb-2">Live Emergencies</h1>
+                <p className="text-white/30 text-sm">
+                  Click any emergency to view details, chat, share location, and respond on behalf of{' '}
+                  <span className="text-white">{org?.orgName}</span>
+                </p>
+              </div>
+              <div className="flex bg-white/[0.04] border border-white/[0.08] rounded-xl p-1">
+                <button
+                  onClick={() => setEmergencyView('list')}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+                    emergencyView === 'list' ? 'bg-[#cc0000] text-white' : 'text-white/40'
+                  }`}
+                >
+                  List
+                </button>
+                <button
+                  onClick={() => setEmergencyView('heatmap')}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+                    emergencyView === 'heatmap' ? 'bg-[#cc0000] text-white' : 'text-white/40'
+                  }`}
+                >
+                  🗺️ Heatmap
+                </button>
+              </div>
+            </div>
 
-            {activeEmergencies.length === 0 ? (
+            <div className="mb-6" />
+
+            {emergencyView === 'heatmap' ? (
+              <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-hidden">
+                <div ref={mapRef} style={{ width: '100%', height: '560px' }} />
+                <div className="flex items-center justify-center gap-8 p-4 border-t border-white/[0.06]">
+                  {[
+                    { color: '#ffcc00', label: 'Low activity' },
+                    { color: '#ff6600', label: 'Moderate' },
+                    { color: '#cc0000', label: 'High activity' },
+                  ].map((item) => (
+                    <div key={item.label} className="flex items-center gap-2">
+                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                      <span className="text-white/40 text-xs">{item.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : activeEmergencies.length === 0 ? (
               <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-16 text-center">
                 <div className="w-3 h-3 bg-[#cc0000]/30 rounded-full mx-auto mb-4" />
                 <p className="text-white/20 text-sm">No active emergencies right now</p>
