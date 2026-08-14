@@ -479,12 +479,12 @@ export default function DashboardPage() {
             )}
 
             {selectedEmergency.location && (
-              <a>
+              <a
                 href={`https://www.google.com/maps/dir/?api=1&destination=${selectedEmergency.location.latitude},${selectedEmergency.location.longitude}`}
                 target="_blank"
                 rel="noreferrer"
                 className="block w-full bg-white/[0.04] border border-white/[0.08] text-white text-center py-3 rounded-xl text-sm mb-4 hover:bg-white/[0.08] transition"
-              
+              >
                 🗺️ Navigate (Open in Google Maps)
               </a>
             )}
